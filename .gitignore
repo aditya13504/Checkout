@@ -25,8 +25,19 @@ kaggle_outputs*/**/*.zip
 kaggle_outputs*/outputs_full/report/
 kaggle_outputs*/outputs_full/submission/
 
+# The earlier run is only compared by its results (report Section 6.6).
+kaggle_outputs_run1/*
+!kaggle_outputs_run1/outputs_full/
+kaggle_outputs_run1/outputs_full/*
+!kaggle_outputs_run1/outputs_full/results/
+!kaggle_outputs_run1/outputs_full/meta.json
+
+# Unzipped demonstrations, and training outputs written next to the code.
+baseline_models/data/il_trajs_finalized_images.jsonl
+baseline_models/ckpts/
+baseline_models/logs/
+wandb/
+
 # The hand-in archive is rebuilt by report/build_submission.py.
 submission/*.zip
 
-# ChromeDriver is platform-specific: download one for the browser environment (see README).
-web_agent_site/envs/chromedriver
