@@ -397,8 +397,8 @@ function card(i) {
 function mineCard(m, k) {
   return `<button class="req" type="button" data-mine="${k}" ${S.current && S.current.request === m.text ? 'aria-current="true"' : ''}>
     <span class="req-id">YOU-${pad(S.mine.length - k, 3)}</span>
-    <div class="req-head"><p class="req-text">${esc(m.text)}</p><div class="req-score">${m.steps ? m.steps : '–'}<small>STEPS</small></div></div>
-    <div class="req-tags"><span class="tag ink">No answer key</span>${m.bought ? `<span class="tag" title="${esc(m.bought)}">Bought</span>` : ''}</div>
+    <div class="req-head"><p class="req-text">${esc(m.text)}</p><div class="req-score">${typeof m.score === 'number' ? fmt1(m.score) : '–'}<small>EST. MATCH</small></div></div>
+    <div class="req-tags">${typeof m.score === 'number' ? `<span class="tag ${BAND[m.score >= 75 ? 'exact' : m.score >= 40 ? 'partial' : 'missed'][1]}">${m.score >= 75 ? 'Good' : m.score >= 40 ? 'Partial' : 'Poor'}</span>` : ''}${m.steps ? `<span class="tag">${m.steps} steps</span>` : '<span class="tag">Not run yet</span>'}${m.bought ? `<span class="tag ink" title="${esc(m.bought)}">Bought</span>` : ''}</div>
   </button>`;
 }
 function renderQueue() {
@@ -511,7 +511,9 @@ const STAGE_TAG = { 'Reading the search results': ['Scan', 'ink'], 'Opening the 
 function render(ev) {
   if (ev.type === 'start') {
     S.startEv = ev; reset();
-    S.current = ev.custom ? { request: ev.instruction } : { goal: ev.goal };
+    const typed = ev.typed || ev.instruction;
+    S.current = ev.custom ? { request: typed } : { goal: ev.goal };
+    if (ev.custom && !S.mine.some(m => m.text === typed)) { S.mine.unshift({ text: typed }); saveMine(); }
     $('#t-req').textContent = ev.custom ? 'Your request' : `Request ${ev.goal + 1} of 500`;
     $('#t-req').className = 'tag' + (ev.custom ? ' ink' : '');
     $('#url').textContent = ev.instruction;
@@ -563,26 +565,36 @@ function think(ev) {
 }
 function finish(ev) {
   stopped();
-  const custom = !!ev.custom, s = ev.score;
-  const rw = $('#reward'); rw.textContent = custom ? 'NO ANSWER KEY' : `REWARD ${fmt1(s)}`; rw.classList.toggle('paid', !custom && s > 0);
+  const custom = !!ev.custom, match = ev.match, s = custom ? (match ? match.score : 0) : ev.score;
+  const rw = $('#reward');
+  rw.textContent = custom ? (match ? `EST. MATCH ${fmt1(s)}` : 'NO ANSWER KEY') : `REWARD ${fmt1(s)}`;
+  rw.classList.toggle('paid', s > 0);
   $('#t-label').textContent = `${ev.steps} steps`;
-  $('#t-note').textContent = custom ? 'Your own request: there is no correct product to score against'
+  $('#t-note').textContent = custom ? 'Your own request: no answer key, so the match is estimated from its words, options and budget'
     : ev.bought ? `The whole reward came at step ${ev.steps}; every step before it earned 0` : 'No purchase within 100 steps, so the reward is 0';
   let stamp, tone, sub;
   if (!ev.bought) { stamp = 'No purchase'; tone = 'var(--red)'; sub = 'Step limit reached'; }
-  else if (custom) { stamp = 'Bought'; tone = 'var(--ink)'; sub = `At step ${ev.steps}`; }
+  else if (custom && !match) { stamp = 'Bought'; tone = 'var(--ink)'; sub = `At step ${ev.steps}`; }
+  else if (custom) { stamp = s >= 75 ? 'Good match' : s >= 40 ? 'Partial' : 'Poor match'; tone = s >= 75 ? 'var(--green)' : s >= 40 ? 'var(--amber)' : 'var(--red)'; sub = `Est. ${fmt1(s)} / 100`; }
   else if (s >= 100) { stamp = 'Exact match'; tone = 'var(--green)'; sub = `${fmt1(s)} / 100`; }
   else if (s > 0) { stamp = 'Partial'; tone = 'var(--amber)'; sub = `${fmt1(s)} / 100`; }
   else { stamp = 'Missed'; tone = 'var(--red)'; sub = '0 / 100'; }
   const st = $('#stamp'); st.style.setProperty('--c', tone); $('#stamp-b').textContent = stamp; $('#stamp-s').textContent = sub;
   st.hidden = false; st.classList.remove('slam'); void st.offsetWidth; st.classList.add('slam');
-  setState('Done', custom ? 'ink' : s >= 100 ? 'green' : s > 0 ? 'amber' : 'red');
-  setStatus(custom ? 'Bought, with no answer key' : `Finished: ${fmt1(s)} points`);
+  setState('Done', custom ? (s >= 75 ? 'green' : s >= 40 ? 'amber' : 'red') : s >= 100 ? 'green' : s > 0 ? 'amber' : 'red');
+  setStatus(custom ? `Bought: estimated match ${fmt1(s)} out of 100` : `Finished: ${fmt1(s)} points`);
   const bought = S.lastItem ? `<p class="muted" style="margin-bottom:8px">Bought <b>${esc(S.lastItem)}</b></p>` : '';
   if (custom) {
-    const m = S.mine.find(x => x.text === S.startEv.instruction);
-    if (m) { m.steps = ev.steps; m.bought = S.lastItem || ''; saveMine(); renderQueue(); }
-    $('#result').innerHTML = `${bought}<p class="muted">A typed request has no correct product, so the store cannot score it.</p>`;
+    const m = S.mine.find(x => x.text === (S.startEv.typed || S.startEv.instruction));
+    if (m) { m.steps = ev.steps; m.bought = S.lastItem || ''; m.score = match ? match.score : null; saveMine(); renderQueue(); }
+    if (!match) { $('#result').innerHTML = `${bought}<p class="muted">It never pressed Buy.</p>`; return; }
+    const okc = ok => ok ? 'ok' : 'bad', [rt, rtText, head] = match.type;
+    $('#result').innerHTML = bought + `<ul class="checks">
+        <li><span>Product type${head ? ` (${esc(head)})` : ''}</span><b class="${rt >= 1 ? 'ok' : rt >= .5 ? 'mid' : 'bad'}">${rt >= 1 ? 'PASS' : '× ' + rt}</b></li>
+        ${match.attributes.map(([w, ok]) => `<li><span>Detail: ${esc(w)}</span><b class="${okc(ok)}">${ok ? 'FOUND' : 'MISSING'}</b></li>`).join('')}
+        ${match.options.map(([w, ok]) => `<li><span>Option: ${esc(w)}</span><b class="${okc(ok)}">${ok ? 'CHOSEN' : 'NOT CHOSEN'}</b></li>`).join('')}
+        ${match.price[0] === null ? '' : `<li><span>Price $${fmt1(match.price[1])} of $${fmt1(match.price[2])}</span><b class="${okc(match.price[0])}">${match.price[0] ? 'IN BUDGET' : 'OVER'}</b></li>`}
+      </ul><p class="muted" style="margin-top:8px;font-size:12px">Estimated: typed requests have no answer key.</p>`;
     return;
   }
   const p = ev.parts, pct = v => Math.round(v * 100) + '%', rec = S.startEv && S.startEv.recorded;

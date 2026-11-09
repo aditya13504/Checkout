@@ -172,6 +172,51 @@ def typed_request_shopper(base, query):
     return TypedRequestShopper
 
 
+STOP = {'a', 'an', 'the', 'and', 'or', 'for', 'with', 'in', 'of', 'to', 'on', 'my', 'me', 'i', 'that', 'is', 'it', 'its',
+        'size', 'color', 'colour', 'pack', 'one', 'some', 'any', 'very', 'new', 'good', 'best', 'please'}
+
+
+def estimated_match(product, price, chosen, query, budget):
+    """Grades a purchase for a typed request with the store's own formula, (attributes + options + price) /
+    parts x product type, where the parts come from the request's words. There is no answer key for a typed
+    request, so this is an estimate; the breakdown shows each check."""
+    plain = lambda text: re.sub(r"['’`]", '', str(text).lower())  # noqa: E731  ("men’s" is "men's" is "mens")
+    query = plain(query)
+    head = request_head(query)
+    title = product.get('Title', '').lower()
+    details = plain(' '.join([title, *map(str, product.get('BulletPoints') or []), str(product.get('Description', '')),
+                              *map(str, product.get('Attributes') or [])]))
+    role = head_role(title, head) if head else 'head'
+    if role == 'head':
+        r_type, type_text = 1.0, 'the kind asked for'
+    elif role == 'modifier' or (head and re.search(rf'\b{re.escape(head)}', details)):
+        r_type, type_text = 0.5, 'a related product'
+    else:
+        r_type, type_text = 0.1, 'a different kind of product'
+    option_values = ' | '.join(plain(v) for values in (product.get('options') or {}).values() for v in values)
+    chosen_values = ' | '.join(plain(v) for v in chosen.values())
+    words = re.findall(r"[a-z][a-z'-]*", re.sub(r'\b\d+(?:\.\d+)?\s*-?\s*[a-z]+\b', ' ', query.lower()))
+    head_forms = {head, f'{head}s', f'{head}es'} if head else set()
+    wanted = [w for w in dict.fromkeys(words) if w not in STOP and w not in head_forms and w not in UNITS and len(w) > 1]
+    wanted += [m.group(1) for m in re.finditer(r'\bsize\s+(\w+)', query.lower())]  # "size 10"
+    options, attributes = [], []
+    for word in wanted:
+        if re.search(rf'\b{re.escape(word)}\b', option_values):
+            options.append([word, bool(re.search(rf'\b{re.escape(word)}\b', chosen_values))])
+        else:
+            attributes.append([word, bool(re.search(rf'\b{re.escape(word)}', details))])
+    have = request_specs(details + ' ' + option_values)
+    for amount, unit in sorted(request_specs(query)):
+        label = f'{amount:g} {unit}'
+        attributes.append([label, (amount, unit) in have])
+    price_ok = None if budget is None or price is None else price <= budget
+    parts = len(attributes) + len(options) + (price_ok is not None)
+    hits = sum(ok for _, ok in attributes) + sum(ok for _, ok in options) + bool(price_ok)
+    score = round(100 * r_type * (hits / parts if parts else 1.0), 1)
+    return {'score': score, 'type': [r_type, type_text, head], 'attributes': attributes, 'options': options,
+            'price': [price_ok, price, budget]}
+
+
 def normalize_request(text):
     """Writes a typed request the way the dataset's requests are written, which is what the value model
     learned from: the budget at the end as ", and price lower than N dollars". Also returns a search query
@@ -200,7 +245,7 @@ class Demo:
         self.models, self.recorded = {}, {}
         self.thread = None
         self.screen, self.step_no, self.goal_idx, self.custom, self.custom_budget = None, 0, 0, False, None
-        self.custom_query = ''
+        self.custom_query, self.custom_text = '', ''
 
     # ------------------------------------------------------------------ setup
     def load(self):
@@ -262,7 +307,18 @@ class Demo:
                     price_paid=server.product_prices.get(asin) or 0.0, goal_attributes=goal.get('attributes', []),
                     goal_options=options, att_hits=round((info.get('r_att') or 0) * len(goal.get('attributes', []))),
                     opt_hits=round(info.get('r_option', 0) * len(options)), r_type=info.get('r_type', 0),
-                    r_price=info.get('r_price'), agents=[], custom=self.custom, retry_url='#', demo_url='#')
+                    r_price=info.get('r_price'), agents=[], custom=self.custom, retry_url='#', demo_url='#',
+                    match=self.custom_match() if self.custom else None)
+
+    def custom_match(self):
+        """The estimated match of a typed request's purchase, or None if nothing was bought."""
+        server = self.env.env.server
+        session = server.user_sessions.get(f'demo_{CUSTOM_GOAL}', {})
+        asin = session.get('asin')
+        if not asin or 'verbose_info' not in session:
+            return None
+        return estimated_match(server.product_item_dict[asin], server.product_prices.get(asin),
+                               session.get('options', {}), self.custom_query, self.custom_budget)
 
     def custom_goal(self, text):
         """A goal for a typed request: the request's text and budget. There is no correct product, so the
@@ -361,6 +417,7 @@ class Demo:
             label, env = AGENTS[key][0], self.env
             self.custom, self.step_no, self.screen = request is not None, 0, None
             if self.custom:
+                self.custom_text = request  # as typed, which the viewer's history keeps
                 request, query, self.custom_budget = normalize_request(request)
                 self.custom_query = query
                 # Its first search uses the cleaned query, as test requests use their predicted one.
@@ -370,6 +427,7 @@ class Demo:
             else:
                 self.goal_idx = goal_idx
             self.publish(run_id, {'type': 'start', 'agent': label, 'key': key, 'custom': self.custom,
+                                  'typed': self.custom_text if self.custom else None,
                                   'goal': None if self.custom else goal_idx,
                                   'instruction': request if self.custom else self.goals[goal_idx],
                                   'recorded': None if self.custom else self.recorded.get(key, {}).get(goal_idx)})
@@ -391,7 +449,7 @@ class Demo:
                     self.publish(run_id, {
                         'type': 'done', 'score': round(float(info['score']) * 10, 1), 'steps': info.get('steps', step),
                         'bought': bool(info.get('bought')), 'html': self.screen or env.env.state['html'],
-                        'custom': self.custom,
+                        'custom': self.custom, 'match': self.custom_match() if self.custom else None,
                         'parts': {k: round(float(verbose.get(k, 0.0)), 3) for k in ('r_type', 'r_att', 'r_option', 'r_price')}})
                     return
         except Exception:

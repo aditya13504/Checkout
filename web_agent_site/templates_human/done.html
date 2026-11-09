@@ -6,7 +6,8 @@
 {% set n_opt = goal_options | length %}
 {% set price_ok = 1 if r_price else 0 %}
 {% set shown = (agents or []) | selectattr('key', 'equalto', 'value_shopper') | list %}
-{% if custom %}{% set verdict, tone = 'Bought', 'mid' %}
+{% if custom and not match %}{% set verdict, tone = 'Bought', 'mid' %}
+{% elif custom %}{% set verdict, tone = ('Good match', 'good') if match.score >= 75 else (('Partial match', 'mid') if match.score >= 40 else ('Poor match', 'bad')) %}
 {% elif score >= 100 %}{% set verdict, tone = 'Exact match', 'good' %}
 {% elif r_type == 0 %}{% set verdict, tone = 'Wrong kind of product', 'bad' %}
 {% elif score >= 50 %}{% set verdict, tone = 'Partial match', 'mid' %}
@@ -14,7 +15,10 @@
 
 <section class="result">
   <div class="score-tag tone-{{ tone }}">
-    {% if custom %}
+    {% if custom and match %}
+    <span class="st-lab">Estimated match</span>
+    <div class="st-num"><span id="score" data-to="{{ match.score }}">{{ '%.1f' | format(match.score) }}</span><small>/ 100</small></div>
+    {% elif custom %}
     <span class="st-lab">No answer key</span>
     <p class="st-note">A typed request has no correct product to score against, so this purchase has no score.</p>
     {% else %}
@@ -39,6 +43,25 @@
   </div>
 </section>
 
+{% if custom and match %}
+<section class="breakdown" aria-labelledby="how">
+  <h2 id="how">How well it matches your request</h2>
+  <p class="note">A typed request has no answer key, so this is an estimate: the store's formula, applied to the words, options and budget in your request.</p>
+  <ul class="checks">
+    <li class="{{ 'ok' if match.type[0] >= 1 else ('part' if match.type[0] >= 0.5 else 'no') }}">
+      <span class="ck-name">Product type</span><span class="ck-val">{{ match.type[1] | capitalize }}{% if match.type[2] %} ({{ match.type[2] }}){% endif %}</span></li>
+    {% for word, ok in match.attributes %}
+    <li class="{{ 'ok' if ok else 'no' }}"><span class="ck-name">Detail</span><span class="ck-val">{{ word }}: {{ 'in the product details' if ok else 'not found' }}</span></li>
+    {% endfor %}
+    {% for word, ok in match.options %}
+    <li class="{{ 'ok' if ok else 'no' }}"><span class="ck-name">Option</span><span class="ck-val">{{ word }}: {{ 'chosen' if ok else 'not chosen' }}</span></li>
+    {% endfor %}
+    {% if match.price[0] is not none %}
+    <li class="{{ 'ok' if match.price[0] else 'no' }}"><span class="ck-name">Price</span><span class="ck-val">Charged ${{ '%.2f' | format(match.price[1]) }}, against a limit of ${{ '%.2f' | format(match.price[2]) }}</span></li>
+    {% endif %}
+  </ul>
+</section>
+{% endif %}
 {% if not custom %}
 <section class="breakdown" aria-labelledby="how">
   <h2 id="how">How the store scored it</h2>
