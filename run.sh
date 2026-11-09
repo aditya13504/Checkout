@@ -135,8 +135,8 @@ if SETUP=$(curl -fs -m 3 http://127.0.0.1:3100/api/setup); then
   fi
   echo "$SETUP" | grep -q '"store": ""' || { echo 'Checkout is already running without sharing. Stop it, then run this again.' >&2; exit 1; }
   open_tunnel
-  trap 'kill $TUNNEL 2>/dev/null || true' EXIT INT TERM
-  printf 'Press Ctrl+C to stop sharing.\n'
+  trap 'kill $TUNNEL 2>/dev/null || true' EXIT HUP INT TERM
+  printf 'Press Ctrl+C or close this window to stop sharing.\n'
   wait $TUNNEL
   exit 0
 fi
@@ -151,7 +151,7 @@ fi
 STORE=$!
 "$PY" demo/live_demo.py --no_browser > "$DATA/logs/demo.log" 2>&1 &
 DEMO=$!
-trap 'kill $STORE $DEMO $TUNNEL 2>/dev/null || true' EXIT INT TERM
+trap 'kill $STORE $DEMO $TUNNEL 2>/dev/null || true' EXIT HUP INT TERM
 echo 'Loading 1,181,430 products into both servers (1 to 3 minutes)...'
 WARM=''
 for _ in $(seq 300); do
@@ -170,5 +170,5 @@ echo '  Live agent demo    http://127.0.0.1:3100/'
 echo "  Store to try       $STORE_URL"
 echo '  Report             data/report/REPORT.md and REPORT.docx, rebuilt just now'
 if [ "$SHARE" = 1 ]; then open_tunnel; else open_url "$STORE_URL"; fi
-printf '\nPress Ctrl+C to stop.\n'
+printf '\nPress Ctrl+C or close this window to stop.\n'
 wait $DEMO
