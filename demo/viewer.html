@@ -451,7 +451,7 @@ async function setup() {
   $('#n-tests').textContent = S.goals.length;
   summary(); renderQueue(); setState('Ready', '');
   setStatus('Ready');
-  if (Q.get('pace')) { $('#pace').value = Q.get('pace'); $('#pace-v').textContent = fmt1(+Q.get('pace')) + 's'; }
+  if (Q.get('pace') !== null) setPace(Math.max(0, Math.min(3, +Q.get('pace') || 0)));
   if (Q.get('start') === '1') {
     if (Q.get('request')) return start({ request: Q.get('request') });
     if (Q.get('goal')) return start({ goal: Math.max(0, Math.min(S.goals.length - 1, (+Q.get('goal') || 1) - 1)) });
@@ -469,10 +469,12 @@ $('#ask').addEventListener('submit', e => {
   if (text.length < 3) { $('#ask-text').focus(); return; }
   start({ request: text });
 });
-$('#pace').addEventListener('input', e => {
-  $('#pace-v').textContent = fmt1(+e.target.value) + 's';
-  fetch('/api/speed', { method: 'POST', body: JSON.stringify({ delay: +e.target.value }) });
-});
+// The pace lives on the server, so every open tab, this one or the screen in a new tab, shows and sets the same.
+function showPace(v) { $('#pace').value = v; $('#pace-v').textContent = fmt1(+v) + 's'; }
+function setPace(v) { showPace(v); S.paceSetAt = Date.now(); fetch('/api/speed', { method: 'POST', body: JSON.stringify({ delay: +v }) }); }
+$('#pace').addEventListener('input', e => setPace(e.target.value));
+$('#pace').addEventListener('pointerdown', () => { S.dragging = true; });
+addEventListener('pointerup', () => { S.dragging = false; });
 $('#stop').addEventListener('click', () => fetch('/api/stop', { method: 'POST', body: '{}' }));
 
 async function start(what) {
@@ -605,6 +607,9 @@ async function poll() {
     const r = await fetch(`/api/events?run=${S.run || -1}&since=${S.since}`).then(x => x.json());
     if (r.run !== S.run) { S.run = r.run; S.since = r.events.length; S.queue = r.events.slice(); }
     else { S.queue.push(...r.events); S.since += r.events.length; }
+    // Follow a pace set in another tab, but not while this tab's own change is still on its way.
+    if (typeof r.delay === 'number' && !S.dragging && Date.now() - (S.paceSetAt || 0) > 1500
+        && Math.abs(+$('#pace').value - r.delay) > 0.05) showPace(Math.min(3, r.delay));
   } catch (e) { /* the server is restarting */ }
   setTimeout(poll, 300);
 }
