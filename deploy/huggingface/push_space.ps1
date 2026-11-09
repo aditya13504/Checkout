@@ -16,7 +16,7 @@ $copy = Join-Path $env:TEMP 'checkout-space'
 if (Test-Path $copy) { Remove-Item $copy -Recurse -Force }
 New-Item -ItemType Directory $copy | Out-Null
 
-git -C $root archive --format=tar -o "$copy.tar" HEAD
+git -C $root -c core.autocrlf=false archive --format=tar -o "$copy.tar" HEAD  # Linux line endings, as stored
 tar -xf "$copy.tar" -C $copy
 Remove-Item "$copy.tar"
 Copy-Item (Join-Path $PSScriptRoot 'README.md') (Join-Path $copy 'README.md') -Force
