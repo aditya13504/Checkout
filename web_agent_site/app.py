@@ -46,7 +46,7 @@ SHOW_ATTRS_TAB = False
 # A session pinned to goal n, for people: fixed_<n>, or fixed_<n>_<anything> for a fresh visit to the same goal.
 FIXED_SESSION = re.compile(r'fixed_(\d+)(?:_[0-9A-Za-z]+)?')
 NUM_TEST_GOALS = 500
-DEMO_URL = os.environ.get('WEBSHOP_DEMO_URL', 'http://127.0.0.1:3100')
+DEMO_URL = os.environ.get('WEBSHOP_DEMO_URL', 'http://127.0.0.1:3100').rstrip('/')  # '/' when on the same address
 # The agents' recorded test scores, shown next to a person's score on the same goal.
 RESULTS_DIR = Path(os.environ.get('WEBSHOP_RESULTS_DIR',
                                   Path(__file__).resolve().parents[1] / 'kaggle_outputs' / 'outputs_full' / 'results'))

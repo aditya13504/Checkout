@@ -481,9 +481,41 @@ STATIC_TYPES = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
                 '.svg': 'image/svg+xml', '.pdf': 'application/pdf'}
 
 
+# One address for everything, as on a hosted Space: the store runs inside at CHECKOUT_STORE_INTERNAL, and every
+# path that is not the viewer's goes to it. Locally the store has its own address, CHECKOUT_STORE_URL.
+STORE_INTERNAL = os.environ.get('CHECKOUT_STORE_INTERNAL', '').rstrip('/')
+STORE_PUBLIC = os.environ.get('CHECKOUT_STORE_URL', 'http://127.0.0.1:3000').rstrip('/')
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
+
+    def proxy(self, method, raw=None):
+        """Passes a request to the store and its answer back, redirects included."""
+        import urllib.error
+        import urllib.request
+
+        class Keep(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, *args, **kwargs):
+                return None
+        headers = {'Content-Type': self.headers['Content-Type']} if self.headers.get('Content-Type') else {}
+        request = urllib.request.Request(STORE_INTERNAL + self.path, data=raw if method == 'POST' else None,
+                                         method=method, headers=headers)
+        try:
+            answer = urllib.request.build_opener(Keep).open(request, timeout=900)
+            code, head, data = answer.status, answer.headers, answer.read()
+        except urllib.error.HTTPError as error:
+            code, head, data = error.code, error.headers, error.read()
+        except OSError:
+            return self.send('The store is still starting. Try again in a minute.', 'text/plain; charset=utf-8', 503)
+        self.send_response(code)
+        for name in ('Content-Type', 'Location'):
+            if head.get(name):
+                self.send_header(name, head[name].replace(STORE_INTERNAL, ''))
+        self.send_header('Content-Length', str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
     def send(self, body, kind='application/json', code=200):
         data = body if isinstance(body, bytes) else body.encode('utf-8')
@@ -508,7 +540,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(json.dumps({
                 'status': d.status, 'goals': d.goals if d.status == 'ready' else [],
                 'agents': [{'key': k, 'label': v[0]} for k, v in AGENTS.items()],
-                'recorded': {k: {str(g): s for g, s in r.items()} for k, r in d.recorded.items()}}))
+                'recorded': {k: {str(g): s for g, s in r.items()} for k, r in d.recorded.items()},
+                'store': '' if STORE_INTERNAL else STORE_PUBLIC}))
         if url.path == '/api/events':
             since = int(parse_qs(url.query).get('since', ['0'])[0])
             run = int(parse_qs(url.query).get('run', ['0'])[0])
@@ -517,12 +550,16 @@ class Handler(BaseHTTPRequestHandler):
                 events = DEMO_STATE.events[since:] if run == current else DEMO_STATE.events
             return self.send(json.dumps({'run': current, 'events': events, 'reset': run != current,
                                          'delay': DEMO_STATE.delay}))
+        if STORE_INTERNAL:
+            return self.proxy('GET')
         return self.send('{}', code=404)
 
     def do_POST(self):
         length = int(self.headers.get('Content-Length', 0))
-        body = json.loads(self.rfile.read(length) or b'{}')
-        url = urlparse(self.path)
+        raw, url = self.rfile.read(length), urlparse(self.path)
+        if STORE_INTERNAL and not url.path.startswith('/api/'):
+            return self.proxy('POST', raw)
+        body = json.loads(raw or b'{}')
         if url.path == '/api/start':
             if DEMO_STATE.status != 'ready':
                 return self.send(json.dumps({'error': 'The store is still loading.'}), code=409)
@@ -551,12 +588,13 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     parser = argparse.ArgumentParser(description='WebShop live agent demo')
     parser.add_argument('--port', type=int, default=3100)
+    parser.add_argument('--host', default='127.0.0.1', help='address to listen on (0.0.0.0 inside a container)')
     parser.add_argument('--no_browser', action='store_true')
     args = parser.parse_args()
     for path in (PREPARED / 'webshop.sqlite', DATA / 'products.sqlite'):
         if not path.exists():
             sys.exit(f'{path} is missing. Run run.ps1 (Windows) or run.sh (macOS) first.')
-    server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
+    server = ThreadingHTTPServer((args.host, args.port), Handler)
     threading.Thread(target=DEMO_STATE.load, daemon=True).start()
     url = f'http://127.0.0.1:{args.port}/'
     print(f'Live demo at {url}  (loading the store takes a minute or two; press Ctrl+C to stop)', flush=True)
