@@ -67,6 +67,8 @@ kbd { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); p
 .dist-key span::before { content: ""; width: 9px; height: 9px; border: 1.5px solid var(--ink); background: var(--c); }
 
 .main { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-width: 0; min-height: 0; }
+/* Fixed rows, so the work area keeps the remaining height when the filter tabs are hidden (Your requests, solo). */
+.main > .top { grid-row: 1; } .main > .tabs { grid-row: 2; } .main > .work { grid-row: 3; }
 .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 14px 22px; border-bottom: var(--b); }
 .title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .top h1 { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; margin: 0; letter-spacing: -.01em; }
@@ -197,7 +199,6 @@ kbd { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); p
 /* ---------- the screen on its own (opened in a new tab) ---------- */
 .solo .side, .solo .tabs, .solo .queue, .solo .panels, .solo .ask { display: none; }
 .solo .app { grid-template-columns: 1fr; }
-.solo .main { grid-template-rows: auto minmax(0, 1fr); }
 .solo .stage { grid-template-rows: minmax(0, 1fr) auto; }
 .solo .work { grid-template-columns: 1fr; }
 .solo .top { padding: 10px 18px; }
