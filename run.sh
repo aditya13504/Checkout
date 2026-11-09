@@ -97,17 +97,61 @@ step 'Report, rebuilt from the run outputs'
 
 # ---------------------------------------------------------------- run
 step 'Starting the store and the live demo'
-if curl -fs -m 3 -o /dev/null http://127.0.0.1:3100/api/setup; then
-  echo 'Checkout is already running; opening it.'
-  open_url http://127.0.0.1:3100/; open_url http://127.0.0.1:3000/new
+# CHECKOUT_SHARE=1 also gives it a free public link through a Cloudflare Quick Tunnel. The tunnel carries one
+# address, so the store is then served through the demo's address too.
+SHARE=${CHECKOUT_SHARE:-0}
+mkdir -p "$DATA/logs"
+open_tunnel() {
+  local cf="$DATA/bin/cloudflared" arch
+  if [ ! -x "$cf" ]; then
+    mkdir -p "$DATA/bin"
+    arch=$(uname -m); case "$arch" in x86_64) arch=amd64 ;; aarch64|arm64) arch=arm64 ;; esac
+    if [ "$(uname)" = Darwin ]; then
+      curl -fL "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-$arch.tgz" | tar -xz -C "$DATA/bin"
+    else
+      curl -fL -o "$cf" "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch"
+    fi
+    chmod +x "$cf"
+  fi
+  "$cf" tunnel --no-autoupdate --url http://127.0.0.1:3100 > "$DATA/logs/tunnel.log" 2>&1 &
+  TUNNEL=$!
+  local url=''
+  for _ in $(seq 45); do
+    sleep 2
+    url=$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$DATA/logs/tunnel.log" | head -1 || true)
+    [ -n "$url" ] && break
+  done
+  [ -n "$url" ] || { echo "The tunnel did not start; see $DATA/logs/tunnel.log." >&2; exit 1; }
+  echo "$url" > "$DATA/logs/public_url.txt"
+  printf '\n\033[32mPublic link, open while this window runs:  %s\033[0m\n' "$url"
+  open_url "$url"
+}
+TUNNEL=''
+if SETUP=$(curl -fs -m 3 http://127.0.0.1:3100/api/setup); then
+  if [ "$SHARE" != 1 ]; then
+    echo 'Checkout is already running; opening it.'
+    open_url http://127.0.0.1:3100/; open_url http://127.0.0.1:3000/new
+    exit 0
+  fi
+  echo "$SETUP" | grep -q '"store": ""' || { echo 'Checkout is already running without sharing. Stop it, then run this again.' >&2; exit 1; }
+  open_tunnel
+  trap 'kill $TUNNEL 2>/dev/null || true' EXIT INT TERM
+  printf 'Press Ctrl+C to stop sharing.\n'
+  wait $TUNNEL
   exit 0
 fi
-mkdir -p "$DATA/logs"
+if [ "$SHARE" = 1 ]; then
+  export WEBSHOP_DEMO_URL='/'                             # the store links back to the viewer on the same address
+  export CHECKOUT_STORE_INTERNAL='http://127.0.0.1:3000'  # and the demo server passes the store's pages through
+  STORE_URL=http://127.0.0.1:3100/new
+else
+  STORE_URL=http://127.0.0.1:3000/new
+fi
 "$PY" -m web_agent_site.app --attrs > "$DATA/logs/store.log" 2>&1 &
 STORE=$!
 "$PY" demo/live_demo.py --no_browser > "$DATA/logs/demo.log" 2>&1 &
 DEMO=$!
-trap 'kill $STORE $DEMO 2>/dev/null || true' EXIT INT TERM
+trap 'kill $STORE $DEMO $TUNNEL 2>/dev/null || true' EXIT INT TERM
 echo 'Loading 1,181,430 products into both servers (1 to 3 minutes)...'
 WARM=''
 for _ in $(seq 300); do
@@ -121,10 +165,10 @@ for _ in $(seq 300); do
 done
 [ -n "$WARM" ] && wait "$WARM" || true
 open_url http://127.0.0.1:3100/
-open_url http://127.0.0.1:3000/new
 printf '\n\033[32mCheckout is running:\033[0m\n'
 echo '  Live agent demo    http://127.0.0.1:3100/'
-echo '  Store to try       http://127.0.0.1:3000/new'
+echo "  Store to try       $STORE_URL"
 echo '  Report             data/report/REPORT.md and REPORT.docx, rebuilt just now'
+if [ "$SHARE" = 1 ]; then open_tunnel; else open_url "$STORE_URL"; fi
 printf '\nPress Ctrl+C to stop.\n'
 wait $DEMO

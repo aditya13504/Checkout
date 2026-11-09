@@ -32,15 +32,18 @@ Run it in the folder where you want the project. It clones the repository into `
 
 The first run takes about 30 minutes, downloads about 7 GB and needs about 20 GB of free disk; 8 GB stays in `data/`. Finished steps are skipped, so later runs start in a few minutes. Inside a clone, `run.ps1`, `run.sh` or a double-click on `demo\START_DEMO.bat` does the same. Set `CHECKOUT_SKIP_TESTS=1` to skip the tests.
 
-## Publish it on Hugging Face Spaces
+## Share it with a free public link
 
-The live demo and the store can run as one free Docker Space (CPU basic: 2 vCPU, 16 GB memory). The image downloads the catalogue and builds the search index and product store while it is built, so the first build takes about 30 minutes and later wake-ups a minute or two.
+Anyone can open your running copy through a free [Cloudflare Quick Tunnel](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/). There is no account and no cost. The viewer and the store share one `https://….trycloudflare.com` address.
 
-1. Create a Space at https://huggingface.co/new-space: name `Checkout`, SDK **Docker**, hardware **CPU basic**.
-2. Create a token with write access at https://huggingface.co/settings/tokens.
-3. Run `powershell -ExecutionPolicy Bypass -File deploy\huggingface\push_space.ps1 -Space <your user>/Checkout` and give the token as the password.
+- Windows: double-click `demo\SHARE_DEMO.bat`.
+- macOS or Linux: `CHECKOUT_SHARE=1 ./run.sh`
 
-The files are in [`deploy/huggingface/`](deploy/huggingface): the Dockerfile, the start script that serves the viewer and the store on one address, and the Space's card.
+The script downloads `cloudflared` into `data/bin` once. When the servers are ready, it prints the public link and opens it; the link is also saved to `data/logs/public_url.txt`. The link works while that window stays open and the computer stays on. Each start gives a new link. If Checkout is already running without sharing, stop it first.
+
+### Always-on hosting
+
+Hugging Face now charges for Docker Spaces, so [`deploy/huggingface/`](deploy/huggingface) (the Dockerfile, a start script that serves both pages on one address, and `push_space.ps1`) only helps on a paid Space. That folder's Dockerfile also runs on any free Linux VM with 16 GB of memory, such as an Oracle Cloud Always Free Arm instance.
 
 ## Reproduce the experiments
 
@@ -61,7 +64,7 @@ data\venv\Scripts\python.exe report\build_submission.py
 | `kaggle/` | The pipeline of all experiment stages, and the notebook built from it |
 | `report/` | Report template, written interpretation, the generator, and `build_submission.py` |
 | `run.ps1`, `run.sh` | Set up and run everything, on Windows and on macOS or Linux |
-| `deploy/huggingface/` | Dockerfile, start script and push script for a Hugging Face Space |
+| `deploy/huggingface/` | Dockerfile and start script for always-on hosting (Hugging Face Space or a VM) |
 | `demo/` | Live demo: the viewer and its server, which runs the value shopper on test requests or typed ones |
 | `kaggle_outputs/` | The reported Kaggle run: results, logs and training metrics |
 | `kaggle_outputs_run1/` | Results of the earlier run that the report compares with |
