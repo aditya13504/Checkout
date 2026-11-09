@@ -116,15 +116,53 @@ Step 'Report, rebuilt from the run outputs'
 
 # ---------------------------------------------------------------- run
 Step 'Starting the store and the live demo'
-$running = $false
-try { Invoke-RestMethod http://127.0.0.1:3100/api/setup -TimeoutSec 3 | Out-Null; $running = $true } catch { }
-if ($running) {
-    Write-Host 'Checkout is already running; opening it.' -ForegroundColor Green
-    Start-Process 'http://127.0.0.1:3100/'; Start-Process 'http://127.0.0.1:3000/new'
-    return
-}
+# CHECKOUT_SHARE=1 (or SHARE_DEMO.bat) also gives it a free public link through a Cloudflare Quick Tunnel.
+# The tunnel carries one address, so the store is then served through the demo's address too.
+$share = $env:CHECKOUT_SHARE -eq '1'
 $logs = Join-Path $data 'logs'
 New-Item -ItemType Directory -Force $logs | Out-Null
+function Open-Tunnel {
+    $cf = Join-Path $data 'bin\cloudflared.exe'
+    if (-not (Test-Path $cf)) {
+        New-Item -ItemType Directory -Force (Split-Path $cf) | Out-Null
+        curl.exe -fL -o $cf https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe
+        Check 'Downloading cloudflared'
+    }
+    $log = Join-Path $logs 'tunnel.log'
+    Remove-Item $log -ErrorAction SilentlyContinue
+    $tunnel = Start-Process $cf -ArgumentList 'tunnel', '--no-autoupdate', '--url', 'http://127.0.0.1:3100' -PassThru `
+        -WindowStyle Hidden -RedirectStandardError $log -RedirectStandardOutput (Join-Path $logs 'tunnel.out.log')
+    $deadline = (Get-Date).AddSeconds(90)
+    do {
+        Start-Sleep 2
+        $found = if (Test-Path $log) { Select-String -Path $log -Pattern 'https://[a-z0-9-]+\.trycloudflare\.com' | Select-Object -First 1 } else { $null }
+    } until ($found -or $tunnel.HasExited -or (Get-Date) -gt $deadline)
+    if (-not $found) { throw "The tunnel did not start; see $log." }
+    $url = $found.Matches[0].Value
+    Write-Host "`nPublic link, open while this window runs:  $url" -ForegroundColor Green
+    Set-Content (Join-Path $logs 'public_url.txt') $url
+    Start-Process $url
+    return $tunnel
+}
+$running = $null
+try { $running = Invoke-RestMethod http://127.0.0.1:3100/api/setup -TimeoutSec 3 } catch { }
+if ($running) {
+    if (-not $share) {
+        Write-Host 'Checkout is already running; opening it.' -ForegroundColor Green
+        Start-Process 'http://127.0.0.1:3100/'; Start-Process 'http://127.0.0.1:3000/new'
+        return
+    }
+    if ($running.store -ne '') { throw 'Checkout is already running without sharing. Close it, then run this again.' }
+    $tunnel = Open-Tunnel
+    Write-Host 'Press Ctrl+C to stop sharing.'
+    try { Wait-Process -Id $tunnel.Id } finally { if (-not $tunnel.HasExited) { Stop-Process -Id $tunnel.Id -Force } }
+    return
+}
+if ($share) {
+    $env:WEBSHOP_DEMO_URL = '/'                             # the store links back to the viewer on the same address
+    $env:CHECKOUT_STORE_INTERNAL = 'http://127.0.0.1:3000'  # and the demo server passes the store's pages through
+}
+$tunnel = $null
 $storeProc = Start-Process $py -ArgumentList '-m', 'web_agent_site.app', '--attrs' -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $logs 'store.log') -RedirectStandardError (Join-Path $logs 'store.err.log')
 $demoProc = Start-Process $py -ArgumentList 'demo\live_demo.py', '--no_browser' -PassThru -WindowStyle Hidden `
@@ -145,15 +183,16 @@ try {
     } until (($demo -eq 'ready' -and $warm) -or (Get-Date) -gt $deadline)
     if ($demo -ne 'ready') { throw "The demo did not start; see the logs in $logs." }
     if ($warm) { Wait-Job $warm -Timeout 900 | Out-Null; Remove-Job $warm -Force }
+    $storeUrl = if ($share) { 'http://127.0.0.1:3100/new' } else { 'http://127.0.0.1:3000/new' }
     Start-Process 'http://127.0.0.1:3100/'
-    Start-Process 'http://127.0.0.1:3000/new'
     Write-Host "`nCheckout is running:" -ForegroundColor Green
     Write-Host '  Live agent demo    http://127.0.0.1:3100/'
-    Write-Host '  Store to try       http://127.0.0.1:3000/new'
+    Write-Host "  Store to try       $storeUrl"
     Write-Host '  Report             data\report\REPORT.md and REPORT.docx, rebuilt just now'
+    if ($share) { $tunnel = Open-Tunnel } else { Start-Process $storeUrl }
     Write-Host "`nPress Ctrl+C to stop."
     Wait-Process -Id $demoProc.Id
 } finally {
-    foreach ($p in $storeProc, $demoProc) { if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force } }
+    foreach ($p in $storeProc, $demoProc, $tunnel) { if ($p -and -not $p.HasExited) { Stop-Process -Id $p.Id -Force } }
 }
 }
