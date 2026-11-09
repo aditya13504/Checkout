@@ -6,6 +6,7 @@ webshop_rl_submission.zip, from the reported Kaggle run, the earlier run and the
 
 The Word version needs pandoc on the PATH, or `pip install pypandoc_binary`.
 """
+import argparse
 import shutil
 import subprocess
 import sys
@@ -69,5 +70,8 @@ def build_zip():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Builds the report and the hand-in zip.')
+    parser.add_argument('--out', default=str(OUT), help='folder to write into (default: submission/)')
+    OUT = Path(parser.parse_args().out).resolve()
     build_report()
     build_zip()
