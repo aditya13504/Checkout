@@ -121,6 +121,36 @@ Step 'Starting the store and the live demo'
 $share = $env:CHECKOUT_SHARE -eq '1'
 $logs = Join-Path $data 'logs'
 New-Item -ItemType Directory -Force $logs | Out-Null
+# The servers and the tunnel go into a Windows job object that kills them when this script ends in any way,
+# including the window being closed, when no 'finally' block gets to run.
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class CheckoutJob {
+    [StructLayout(LayoutKind.Sequential)] struct Basic {
+        public long PerProcessUserTimeLimit, PerJobUserTimeLimit; public uint LimitFlags;
+        public UIntPtr MinimumWorkingSetSize, MaximumWorkingSetSize; public uint ActiveProcessLimit;
+        public UIntPtr Affinity; public uint PriorityClass, SchedulingClass; }
+    [StructLayout(LayoutKind.Sequential)] struct Io { public ulong R, W, O, RB, WB, OB; }
+    [StructLayout(LayoutKind.Sequential)] struct Extended {
+        public Basic BasicLimits; public Io IoInfo;
+        public UIntPtr ProcessMemoryLimit, JobMemoryLimit, PeakProcessMemoryUsed, PeakJobMemoryUsed; }
+    [DllImport("kernel32.dll", SetLastError = true)] static extern IntPtr CreateJobObject(IntPtr attributes, string name);
+    [DllImport("kernel32.dll", SetLastError = true)] static extern bool SetInformationJobObject(IntPtr job, int infoClass, ref Extended info, int size);
+    [DllImport("kernel32.dll", SetLastError = true)] static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
+    static IntPtr job = IntPtr.Zero;
+    public static void Add(IntPtr process) {
+        if (job == IntPtr.Zero) {
+            job = CreateJobObject(IntPtr.Zero, null);
+            var info = new Extended();
+            info.BasicLimits.LimitFlags = 0x2000;  // JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+            SetInformationJobObject(job, 9, ref info, Marshal.SizeOf(typeof(Extended)));
+        }
+        AssignProcessToJobObject(job, process);
+    }
+}
+'@
+function Close-WithWindow($proc) { [CheckoutJob]::Add($proc.Handle); $proc }
 function Open-Tunnel {
     $cf = Join-Path $data 'bin\cloudflared.exe'
     if (-not (Test-Path $cf)) {
@@ -132,6 +162,7 @@ function Open-Tunnel {
     Remove-Item $log -ErrorAction SilentlyContinue
     $tunnel = Start-Process $cf -ArgumentList 'tunnel', '--no-autoupdate', '--url', 'http://127.0.0.1:3100' -PassThru `
         -WindowStyle Hidden -RedirectStandardError $log -RedirectStandardOutput (Join-Path $logs 'tunnel.out.log')
+    $tunnel = Close-WithWindow $tunnel
     $deadline = (Get-Date).AddSeconds(90)
     do {
         Start-Sleep 2
@@ -154,7 +185,7 @@ if ($running) {
     }
     if ($running.store -ne '') { throw 'Checkout is already running without sharing. Close it, then run this again.' }
     $tunnel = Open-Tunnel
-    Write-Host 'Press Ctrl+C to stop sharing.'
+    Write-Host 'Press Ctrl+C or close this window to stop sharing.'
     try { Wait-Process -Id $tunnel.Id } finally { if (-not $tunnel.HasExited) { Stop-Process -Id $tunnel.Id -Force } }
     return
 }
@@ -165,8 +196,10 @@ if ($share) {
 $tunnel = $null
 $storeProc = Start-Process $py -ArgumentList '-m', 'web_agent_site.app', '--attrs' -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $logs 'store.log') -RedirectStandardError (Join-Path $logs 'store.err.log')
+$storeProc = Close-WithWindow $storeProc
 $demoProc = Start-Process $py -ArgumentList 'demo\live_demo.py', '--no_browser' -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $logs 'demo.log') -RedirectStandardError (Join-Path $logs 'demo.err.log')
+$demoProc = Close-WithWindow $demoProc
 try {
     Write-Host 'Loading 1,181,430 products into both servers (1 to 3 minutes)...'
     $deadline = (Get-Date).AddMinutes(15)
@@ -190,7 +223,7 @@ try {
     Write-Host "  Store to try       $storeUrl"
     Write-Host '  Report             data\report\REPORT.md and REPORT.docx, rebuilt just now'
     if ($share) { $tunnel = Open-Tunnel } else { Start-Process $storeUrl }
-    Write-Host "`nPress Ctrl+C to stop."
+    Write-Host "`nPress Ctrl+C or close this window to stop."
     Wait-Process -Id $demoProc.Id
 } finally {
     foreach ($p in $storeProc, $demoProc, $tunnel) { if ($p -and -not $p.HasExited) { Stop-Process -Id $p.Id -Force } }
