@@ -16,7 +16,7 @@ OUT = ROOT / 'kaggle' / 'webshop_rl_kaggle.ipynb'
 MAX_NOTEBOOK_BYTES = 1_000_000  # Kaggle refuses to commit a kernel of 1 MB or more
 BUNDLE_TIME = 946684800  # year 2000; the zip format cannot store dates before 1980
 
-INCLUDE = ['baseline_models', 'web_agent_site', 'search_engine', 'tests', 'kaggle', 'report', 'run_envs', 'transfer',
+INCLUDE = ['baseline_models', 'web_agent_site', 'search_engine', 'tests', 'kaggle', 'report', 'run_envs',
            'README.md', 'LICENSE.md', 'requirements.txt', 'conftest.py', 'setup.sh',
            'run_dev.sh', 'run_prod.sh', 'run_web_agent_site_env.sh', 'run_web_agent_text_env.sh']
 EXCLUDE_NAMES = {'__pycache__', '.pytest_cache', 'chromedriver', 'webshop_rl_kaggle.ipynb'}

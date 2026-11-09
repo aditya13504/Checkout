@@ -77,7 +77,7 @@ Our code is implemented in Python. To setup, do the following:
 1. Install Python 3.10
 2. Download the source code:
 ```sh
-> git clone https://github.com/princeton-nlp/webshop.git webshop
+> git clone https://github.com/aditya13504/Checkout.git
 ```
 3. Create a virtual environment and activate it
 ```sh
@@ -92,7 +92,7 @@ It installs the dependencies, downloads the data from a Hugging Face mirror (the
 
 5. Set the environment variables that the script prints, so that the code uses the prepared catalogue.
 
-The search index uses SQLite, so Java is not required. To use the original Lucene index instead, install `pyserini` and Java, build it with `search_engine/run_indexing.sh`, and don't set `WEBSHOP_SQLITE_INDEX`.
+The search index uses SQLite, so Java is not required.
 
 ## 🛠️ Usage
 The WebShop environment can be rendered in two modes - `html` and `simple` - each of which offer a different observation space. The `simple` mode strips away the extraneous meta-data that the `html` mode includes to make model training and evaluation easier.
@@ -134,16 +134,13 @@ Available actions: {'has_search_bar': True, 'clickables': ['search']}
 Taking action "search[shoes]" -> Reward = 0.0
 ...
 ```
-In order to run the `run_web_agent_site_env.sh` script, you must download a version of [ChromeDriver](https://chromedriver.chromium.org/downloads) compatible with your Chrome browser version. Once you have downloaded and unzipped the executable, rename it `chromedriver` and place it in the `web_agent_site/envs` folder. The one included here is for Intel Macs only.
+In order to run the `run_web_agent_site_env.sh` script, you must download a version of [ChromeDriver](https://chromedriver.chromium.org/downloads) compatible with your Chrome browser version. Once you have downloaded and unzipped the executable, rename it `chromedriver` and place it in the `web_agent_site/envs` folder.
 
 ### Baseline Models
-To run baseline models (rule, IL, RL, IL+RL) from the paper, please refer to the `README.md` in the [baseline_models](https://github.com/princeton-nlp/webshop/tree/master/baseline_models) folder.
+To run baseline models (rule, IL, RL, IL+RL) from the paper, please refer to the `README.md` in the [baseline_models](baseline_models/README.md) folder.
 
 ### Sim-to-real Transfer
-To read more about how the sim-to-real transfer of agents trained on WebShop to other environments works, please refer to the `README.md` in the [transfer](https://github.com/princeton-nlp/webshop/tree/master/transfer) folder.
-
-## 💫 Contributions
-We would love to hear from the broader NLP and Machine Learning community, and we welcome any contributions, pull requests, or issues! To do so, please either file a new pull request or issue and fill in the corresponding templates accordingly. We'll be sure to follow up shortly!
+The original repository also transfers agents to Amazon and eBay. That code is outside this project's scope and is not included; see the [original repository](https://github.com/princeton-nlp/webshop/tree/master/transfer).
 
 ## 🪪 License
 Check `LICENSE.md`

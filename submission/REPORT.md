@@ -331,4 +331,8 @@ This project builds on the open-source WebShop code by Princeton NLP (MIT Licens
 
 **Not changed**
 
-- The reward logic. The sim-to-real `transfer/` code is outside this project's scope and still has the known issues listed in its own code.
+- The reward logic.
+
+**Left out**
+
+- The original repository's sim-to-real `transfer/` code, its Lucene indexing scripts, attribute annotation scripts and Apple-silicon setup files, which this project does not use.
