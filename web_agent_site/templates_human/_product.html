@@ -1,10 +1,10 @@
 {# The shared pieces of a product page: its image, rating stars and the tabs to its other pages. #}
-{% macro product_image(product_info, options, id='') %}
+{% macro product_image(product_info, options, id='', asin='') %}
   {% set ns = namespace(img=product_info.MainImage) %}
   {% for value in options.values() %}
     {% if (product_info.option_to_image or {}).get(value) %}{% set ns.img = product_info.option_to_image[value] %}{% endif %}
   {% endfor %}
-  <img {% if id %}id="{{ id }}" {% endif %}src="{{ ns.img }}" alt="{{ product_info.Title }}"
+  <img {% if id %}id="{{ id }}" {% endif %}{% if asin %}style="view-transition-name: p-{{ asin | lower }}" {% endif %}src="{{ ns.img }}" alt="{{ product_info.Title }}"
     onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/no-image-available.png') }}'">
 {% endmacro %}
 

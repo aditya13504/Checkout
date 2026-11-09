@@ -75,3 +75,5 @@ data\venv\Scripts\python.exe report\build_submission.py
 ## Credits
 
 The environment, reward, network architecture and demonstration data come from WebShop by Shunyu Yao, Howard Chen, John Yang and Karthik Narasimhan, *[WebShop: Towards Scalable Real-World Web Interaction with Grounded Language Agents](https://arxiv.org/abs/2207.01206)*, NeurIPS 2022. See [`LICENSE.md`](LICENSE.md).
+
+The 3D characters in the store and the live demo (`web_agent_site/static/characters/`) are [Fluent Emoji](https://github.com/microsoft/fluentui-emoji) by Microsoft, under the MIT licence in that folder.

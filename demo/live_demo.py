@@ -283,7 +283,7 @@ class Demo:
             try:
                 name, arg = parse_action(action)
                 goal = server.user_sessions.get(kwargs.get('session_id'), {}).get('goal', {})
-                context = dict(kwargs, human=True, steps=self.step_no, show_attrs=False,
+                context = dict(kwargs, human=True, viewer='agent', steps=self.step_no, show_attrs=False,
                                budget=self.custom_budget if self.custom else goal.get('price_upper'),
                                request_no=None if self.custom else self.goal_idx + 1,
                                catalogue_size=len(server.product_item_dict))
