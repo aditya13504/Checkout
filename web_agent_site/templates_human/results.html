@@ -7,13 +7,13 @@
   <div class="pager">
     {% if page > 1 %}
     <form method="post" action="{{ url_for('search_results', session_id=session_id, keywords=keywords, page=page - 1) }}">
-      <button type="submit" class="btn-quiet">&larr; Previous</button>
+      <button type="submit" class="btn-quiet" data-act="&lt; prev">&larr; Previous</button>
     </form>
     {% endif %}
     <span class="pg">Page {{ page }} of {{ pages }}</span>
     {% if page * 10 < total %}
     <form method="post" action="{{ url_for('search_results', session_id=session_id, keywords=keywords, page=page + 1) }}">
-      <button type="submit" class="btn-quiet">Next &rarr;</button>
+      <button type="submit" class="btn-quiet" data-act="next &gt;">Next &rarr;</button>
     </form>
     {% endif %}
   </div>
@@ -21,7 +21,7 @@
 {% set query = keywords | join(' ') if keywords is not string else keywords %}
 <div class="bar">
   <form method="post" action="{{ url_for('index', session_id=session_id) }}">
-    <button type="submit" class="btn-back">&larr; New search</button>
+    <button type="submit" class="btn-back" data-act="back to search">&larr; New search</button>
   </form>
   <div class="found">
     <h1>{% if total %}{{ total }} results{% else %}No results{% endif %} for <q>{{ query }}</q></h1>
@@ -34,7 +34,7 @@
   {% for item in products %}
   {% set item_url = url_for('item_page', session_id=session_id, asin=item.asin, keywords=keywords, page=page, options=dict()) %}
   <li class="card">
-    <a class="card-link" href="{{ item_url }}">
+    <a class="card-link" href="{{ item_url }}" data-act="{{ item.asin | lower }}">
       <span class="thumb"><img src="{{ item.MainImage }}" alt="" loading="lazy"
         onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/no-image-available.png') }}'"></span>
       <span class="card-body">

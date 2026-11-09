@@ -5,15 +5,22 @@
 {% set n_att = goal_attributes | length %}
 {% set n_opt = goal_options | length %}
 {% set price_ok = 1 if r_price else 0 %}
-{% if score >= 100 %}{% set verdict, tone = 'Exact match', 'good' %}
+{% set shown = (agents or []) | selectattr('key', 'equalto', 'value_shopper') | list %}
+{% if custom %}{% set verdict, tone = 'Bought', 'mid' %}
+{% elif score >= 100 %}{% set verdict, tone = 'Exact match', 'good' %}
 {% elif r_type == 0 %}{% set verdict, tone = 'Wrong kind of product', 'bad' %}
 {% elif score >= 50 %}{% set verdict, tone = 'Partial match', 'mid' %}
 {% else %}{% set verdict, tone = 'Poor match', 'bad' %}{% endif %}
 
 <section class="result">
   <div class="score-tag tone-{{ tone }}">
+    {% if custom %}
+    <span class="st-lab">No answer key</span>
+    <p class="st-note">A typed request has no correct product to score against, so this purchase has no score.</p>
+    {% else %}
     <span class="st-lab">Your reward</span>
     <div class="st-num"><span id="score" data-to="{{ score }}">{{ '%.1f' | format(score) }}</span><small>/ 100</small></div>
+    {% endif %}
     <p class="st-verdict">{{ verdict }}</p>
     <p class="st-steps">Bought at step {{ steps }}</p>
   </div>
@@ -32,6 +39,7 @@
   </div>
 </section>
 
+{% if not custom %}
 <section class="breakdown" aria-labelledby="how">
   <h2 id="how">How the store scored it</h2>
   <ul class="checks">
@@ -57,11 +65,12 @@
   </ul>
   <p class="formula">({{ att_hits }} attributes + {{ opt_hits }} options + {{ price_ok }} price) &divide; {{ n_att + n_opt + 1 }} parts &times; {{ r_type }} type = <b>{{ '%.1f' | format(score) }}</b></p>
 </section>
+{% endif %}
 
-{% if agents %}
+{% if shown %}
 <section class="vs" aria-labelledby="vs">
-  <h2 id="vs">The agents on request {{ request_no }}</h2>
-  <p class="note">Their scores from the recorded test run on this same request. The live demo reproduces them.</p>
+  <h2 id="vs">The value shopper on request {{ request_no }}</h2>
+  <p class="note">Its score from the recorded test run on this same request. Watch it shop the request live below.</p>
   <ol class="vs-list">
     <li class="vs-you">
       <span class="vs-name">You<small>A person</small></span>
@@ -69,7 +78,7 @@
       <span class="vs-score">{{ '%.1f' | format(score) }}</span>
       <span class="vs-steps">{{ steps }} steps</span>
     </li>
-    {% for a in agents %}
+    {% for a in shown %}
     <li class="vs-{{ a.key }}">
       <span class="vs-name">{{ a.name }}<small>{{ a.sub }}</small></span>
       <span class="vs-bar"><i style="--w:{{ a.score }}%"></i></span>
@@ -84,7 +93,7 @@
 <div class="actions">
   <a class="btn-go" href="{{ retry_url }}">Try this request again</a>
   <a class="btn-quiet" href="{{ url_for('new_session') }}">Shop another request</a>
-  {% if agents %}<a class="btn-quiet" href="{{ demo_url }}">Watch the agents on it</a>{% endif %}
+  {% if shown %}<a class="btn-quiet" href="{{ demo_url }}&amp;start=1">Watch the value shopper shop it</a>{% endif %}
 </div>
 {% endblock %}
 {% block scripts %}

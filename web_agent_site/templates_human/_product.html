@@ -20,7 +20,7 @@
 {% macro tabs(session_id, asin, keywords, page, options, show_attrs, current='') %}
   <nav class="tabs" aria-label="More about this product">
     {% for name in ['Description', 'Features', 'Reviews'] + (['Attributes'] if show_attrs else []) %}
-    <a href="{{ url_for('item_sub_page', session_id=session_id, asin=asin, keywords=keywords, page=page, sub_page=name, options=options) }}"
+    <a data-act="{{ name | lower }}" href="{{ url_for('item_sub_page', session_id=session_id, asin=asin, keywords=keywords, page=page, sub_page=name, options=options) }}"
        {% if name == current %}class="on" aria-current="page"{% endif %}>{{ name }}</a>
     {% endfor %}
   </nav>

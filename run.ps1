@@ -111,9 +111,8 @@ if ($env:CHECKOUT_SKIP_TESTS -ne '1') {
     Step 'Tests'
     & $py -m pytest -q -p no:cacheprovider --disable-warnings tests; Check 'The tests'
 }
-Step 'Report and results page, rebuilt from the run outputs'
+Step 'Report, rebuilt from the run outputs'
 & $py report\build_submission.py --out (Join-Path $data 'report'); Check 'Building the report'
-& $py showcase\build_data.py; Check 'Building the results page'
 
 # ---------------------------------------------------------------- run
 Step 'Starting the store and the live demo'
@@ -121,7 +120,7 @@ $running = $false
 try { Invoke-RestMethod http://127.0.0.1:3100/api/setup -TimeoutSec 3 | Out-Null; $running = $true } catch { }
 if ($running) {
     Write-Host 'Checkout is already running; opening it.' -ForegroundColor Green
-    Start-Process 'http://127.0.0.1:3100/'; Start-Process 'http://127.0.0.1:3100/showcase/'; Start-Process 'http://127.0.0.1:3000/new'
+    Start-Process 'http://127.0.0.1:3100/'; Start-Process 'http://127.0.0.1:3000/new'
     return
 }
 $logs = Join-Path $data 'logs'
@@ -147,11 +146,9 @@ try {
     if ($demo -ne 'ready') { throw "The demo did not start; see the logs in $logs." }
     if ($warm) { Wait-Job $warm -Timeout 900 | Out-Null; Remove-Job $warm -Force }
     Start-Process 'http://127.0.0.1:3100/'
-    Start-Process 'http://127.0.0.1:3100/showcase/'
     Start-Process 'http://127.0.0.1:3000/new'
     Write-Host "`nCheckout is running:" -ForegroundColor Green
     Write-Host '  Live agent demo    http://127.0.0.1:3100/'
-    Write-Host '  Results page       http://127.0.0.1:3100/showcase/'
     Write-Host '  Store to try       http://127.0.0.1:3000/new'
     Write-Host '  Report             data\report\REPORT.md and REPORT.docx, rebuilt just now'
     Write-Host "`nPress Ctrl+C to stop."

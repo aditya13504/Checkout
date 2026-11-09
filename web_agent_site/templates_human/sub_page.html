@@ -5,10 +5,10 @@
 {% block main %}
 <div class="bar">
   <form method="post" action="{{ url_for('index', session_id=session_id) }}">
-    <button type="submit" class="btn-back">&larr; New search</button>
+    <button type="submit" class="btn-back" data-act="back to search">&larr; New search</button>
   </form>
   <form method="post" action="{{ url_for('item_page', session_id=session_id, asin=asin, keywords=keywords, page=page, options=options) }}">
-    <button type="submit" class="btn-quiet">Back to the product</button>
+    <button type="submit" class="btn-quiet" data-act="&lt; prev">Back to the product</button>
   </form>
 </div>
 

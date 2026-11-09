@@ -3,15 +3,17 @@ Live demo: watch an agent shop in the real WebShop store, one step at a time, in
 
     data\\venv\\Scripts\\python.exe demo\\live_demo.py        (or double-click demo\\START_DEMO.bat)
 
-Then open http://127.0.0.1:3100, pick an agent and a test request, and press Start. Every page shown
-is the page the agent actually received from the environment, and every decision is made live by the
-trained policy (or the value model) on this machine. Nothing is replayed from a file.
+Then open http://127.0.0.1:3100 and run the value shopper on a test request, or on a request you type.
+Every decision is made live on this machine; nothing is replayed from a file. The screen shows each page
+in the store's current design, while the agent reads and acts on the environment's own pages, so what it
+sees, and therefore its decisions and scores, are exactly those of the reported runs.
 
 Needs the prepared full catalogue in data/, which run.ps1 or run.sh builds.
 """
 import argparse
 import json
 import os
+import re
 import sys
 import threading
 import time
@@ -20,7 +22,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from types import SimpleNamespace
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'data'
@@ -52,6 +54,8 @@ AGENTS = {
                         RESULTS / 'il_seed0_greedy.json'),
     'rule_softmax': ('Rule baseline', 'rule', None, None, RESULTS / 'rule_softmax.json'),
 }
+CUSTOM_GOAL = 999999  # the session number of requests typed by people; they have no answer key
+BUDGET = re.compile(r'price lower than ([\d.]+) dollars')
 STAGES = {'scan': 'Reading the search results', 'inspect': 'Opening the most promising products',
           'buy': 'Going back to buy the best one'}
 
@@ -63,6 +67,7 @@ class Demo:
         self.run_id, self.delay, self.stop = 0, 1.0, False
         self.models, self.recorded = {}, {}
         self.thread = None
+        self.screen, self.step_no, self.goal_idx, self.custom, self.custom_budget = None, 0, 0, False, None
 
     # ------------------------------------------------------------------ setup
     def load(self):
@@ -75,6 +80,7 @@ class Demo:
             t0 = time.time()
             self.env = WebEnv(args, split='test', id='demo_')
             self.goals = [g['instruction_text'] for g in self.env.env.server.goals[:500]]
+            self.install_screen()
             for key, (*_, path) in AGENTS.items():
                 if path.exists():
                     with open(path, encoding='utf-8') as f:
@@ -84,6 +90,55 @@ class Demo:
         except Exception:
             self.status = 'The store failed to load:\n' + traceback.format_exc()
             print(self.status, flush=True)
+
+    # ----------------------------------------------------------------- screen
+    def install_screen(self):
+        """Shows each page the agent gets in the store's current design, for people watching. Display only:
+        the environment still hands the agent its own pages, which it reads and acts on as before."""
+        import web_agent_site.envs.web_agent_text_env as text_env
+        from web_agent_site.app import app as store_app
+        from web_agent_site.engine.engine import END_BUTTON, parse_action, render_human_page
+        agent_render, server = text_env.map_action_to_html, self.env.env.server
+
+        def render(action, **kwargs):
+            html = agent_render(action, **kwargs)
+            try:
+                name, arg = parse_action(action)
+                goal = server.user_sessions.get(kwargs.get('session_id'), {}).get('goal', {})
+                context = dict(kwargs, human=True, steps=self.step_no, show_attrs=False,
+                               budget=self.custom_budget if self.custom else goal.get('price_upper'),
+                               request_no=None if self.custom else self.goal_idx + 1,
+                               catalogue_size=len(server.product_item_dict))
+                if name == 'click' and arg == END_BUTTON:
+                    context.update(self.done_screen(server, kwargs))
+                with store_app.test_request_context():
+                    self.screen = render_human_page(name, arg, context)
+            except Exception:
+                self.screen = None  # the viewer then shows the environment's own page
+                traceback.print_exc()
+            return html
+        text_env.map_action_to_html = render
+
+    def done_screen(self, server, kwargs):
+        """What the store's result page needs, from the finished session."""
+        session = server.user_sessions[kwargs['session_id']]
+        goal, info, asin = session['goal'], session.get('verbose_info', {}), kwargs['asin']
+        options = goal.get('goal_options', [])
+        options = list(options.values() if isinstance(options, dict) else options)
+        return dict(score=round(kwargs['reward'] * 100, 1), product=server.product_item_dict[asin],
+                    price_paid=server.product_prices.get(asin) or 0.0, goal_attributes=goal.get('attributes', []),
+                    goal_options=options, att_hits=round((info.get('r_att') or 0) * len(goal.get('attributes', []))),
+                    opt_hits=round(info.get('r_option', 0) * len(options)), r_type=info.get('r_type', 0),
+                    r_price=info.get('r_price'), agents=[], custom=self.custom, retry_url='#', demo_url='#')
+
+    def custom_goal(self, text):
+        """A goal for a typed request: the request's text and budget. There is no correct product, so the
+        rest is borrowed from a test goal only to let the store compute a reward, which is never shown."""
+        goal = dict(self.env.env.server.goals[0])
+        budget = BUDGET.search(text)
+        goal.update(instruction_text=text, goal_options=[], asin='',
+                    price_upper=float(budget.group(1)) if budget else 1e9)
+        return goal
 
     def model(self, key):
         if key not in self.models:
@@ -166,14 +221,22 @@ class Demo:
         return act
 
     # ----------------------------------------------------------------- running
-    def run(self, run_id, key, goal_idx):
+    def run(self, run_id, key, goal_idx, request=None):
         try:
-            label = AGENTS[key][0]
-            self.publish(run_id, {'type': 'start', 'agent': label, 'key': key, 'goal': goal_idx,
-                                  'instruction': self.goals[goal_idx],
-                                  'recorded': self.recorded.get(key, {}).get(goal_idx)})
+            label, env = AGENTS[key][0], self.env
+            self.custom, self.step_no, self.screen = request is not None, 0, None
+            if self.custom:
+                budget = BUDGET.search(request)
+                self.custom_budget = float(budget.group(1)) if budget else None
+                self.goal_idx, goal_idx = -1, CUSTOM_GOAL
+                env.env.server.user_sessions[f'demo_{CUSTOM_GOAL}'] = {'goal': self.custom_goal(request), 'done': False}
+            else:
+                self.goal_idx = goal_idx
+            self.publish(run_id, {'type': 'start', 'agent': label, 'key': key, 'custom': self.custom,
+                                  'goal': None if self.custom else goal_idx,
+                                  'instruction': request if self.custom else self.goals[goal_idx],
+                                  'recorded': None if self.custom else self.recorded.get(key, {}).get(goal_idx)})
             act = self.policy(key)
-            env = self.env
             ob, info = env.reset(goal_idx)
             step = 0
             while not self.stop:
@@ -181,14 +244,17 @@ class Demo:
                 action, think = act(ob, info)
                 step += 1
                 self.publish(run_id, {'type': 'step', 'n': step, 'action': action, 'target': self.target(action),
-                                      'url': env.env.state['url'], 'html': env.env.state['html'], 'think': think})
+                                      'url': env.env.state['url'], 'html': self.screen or env.env.state['html'],
+                                      'think': think})
                 self.wait()
+                self.step_no = step
                 ob, _, done, info = env.step(action)
                 if done:
                     verbose = info.get('verbose', {})
                     self.publish(run_id, {
                         'type': 'done', 'score': round(float(info['score']) * 10, 1), 'steps': info.get('steps', step),
-                        'bought': bool(info.get('bought')), 'html': env.env.state['html'],
+                        'bought': bool(info.get('bought')), 'html': self.screen or env.env.state['html'],
+                        'custom': self.custom,
                         'parts': {k: round(float(verbose.get(k, 0.0)), 3) for k in ('r_type', 'r_att', 'r_option', 'r_price')}})
                     return
         except Exception:
@@ -200,7 +266,7 @@ class Demo:
         while time.time() < end and not self.stop:
             time.sleep(0.03)
 
-    def start(self, key, goal_idx):
+    def start(self, key, goal_idx, request=None):
         if self.thread and self.thread.is_alive():
             self.stop = True
             self.thread.join()
@@ -208,7 +274,7 @@ class Demo:
             self.run_id += 1
             self.events = []
         self.stop = False
-        self.thread = threading.Thread(target=self.run, args=(self.run_id, key, goal_idx), daemon=True)
+        self.thread = threading.Thread(target=self.run, args=(self.run_id, key, goal_idx, request), daemon=True)
         self.thread.start()
 
 
@@ -240,19 +306,8 @@ class Handler(BaseHTTPRequestHandler):
         if url.path.startswith('/static/'):
             path = (ROOT / 'web_agent_site' / url.path.lstrip('/')).resolve()
             if path.is_file() and (ROOT / 'web_agent_site' / 'static') in path.parents:
-                kind = 'text/css' if path.suffix == '.css' else 'application/octet-stream'
-                return self.send(path.read_bytes(), kind)
+                return self.send(path.read_bytes(), STATIC_TYPES.get(path.suffix, 'application/octet-stream'))
             return self.send('{}', code=404)
-        if url.path in ('/showcase', '/showcase/'):
-            return self.send((ROOT / 'showcase' / 'index.html').read_bytes(), 'text/html; charset=utf-8')
-        # The results page and the report it links to, read-only and limited to their own folders.
-        for folder in ('showcase', 'submission'):
-            if url.path.startswith(f'/{folder}/'):
-                base = (ROOT / folder).resolve()
-                path = (ROOT / unquote(url.path).lstrip('/')).resolve()
-                if path.is_file() and base in path.parents:
-                    return self.send(path.read_bytes(), STATIC_TYPES.get(path.suffix, 'application/octet-stream'))
-                return self.send('{}', code=404)
         if url.path == '/api/setup':
             d = DEMO_STATE
             return self.send(json.dumps({
@@ -275,7 +330,14 @@ class Handler(BaseHTTPRequestHandler):
         if url.path == '/api/start':
             if DEMO_STATE.status != 'ready':
                 return self.send(json.dumps({'error': 'The store is still loading.'}), code=409)
-            key, goal = body.get('agent'), int(body.get('goal', 0))
+            key, request = body.get('agent', 'value_shopper'), ' '.join(str(body.get('request') or '').split())
+            if request:  # a request typed by a person
+                if key != 'value_shopper' or not 3 <= len(request) <= 300:
+                    return self.send(json.dumps({'error': 'Type a request of 3 to 300 characters.'}), code=400)
+                DEMO_STATE.delay = float(body.get('delay', DEMO_STATE.delay))
+                DEMO_STATE.start(key, None, request)
+                return self.send(json.dumps({'run': DEMO_STATE.run_id}))
+            goal = int(body.get('goal', 0))
             if key not in AGENTS or not 0 <= goal < len(DEMO_STATE.goals):
                 return self.send(json.dumps({'error': 'Unknown agent or request.'}), code=400)
             DEMO_STATE.delay = float(body.get('delay', DEMO_STATE.delay))

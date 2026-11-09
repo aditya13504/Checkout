@@ -168,6 +168,7 @@ main { padding: 14px 0 40px; min-height: 50vh; }
 .st-num small { font-size: 18px; font-weight: 700; font-stretch: 100%; margin-left: 6px; letter-spacing: 0; }
 .st-verdict { margin: 0; font-size: 22px; font-weight: 850; font-stretch: 108%; }
 .st-steps { margin: 4px 0 0; font-size: 14px; font-weight: 600; opacity: .8; }
+.st-note { margin: 8px 0 10px; font-size: 15px; font-weight: 600; max-width: 30ch; }
 .bought h1 { font-size: 15px; font-weight: 700; color: var(--muted); margin: 4px 0 8px; }
 .bought .mini { margin: 0; }
 

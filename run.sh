@@ -92,15 +92,14 @@ if [ "${CHECKOUT_SKIP_TESTS:-0}" != 1 ]; then
   step 'Tests'
   "$PY" -m pytest -q -p no:cacheprovider --disable-warnings tests
 fi
-step 'Report and results page, rebuilt from the run outputs'
+step 'Report, rebuilt from the run outputs'
 "$PY" report/build_submission.py --out "$DATA/report"
-"$PY" showcase/build_data.py
 
 # ---------------------------------------------------------------- run
 step 'Starting the store and the live demo'
 if curl -fs -m 3 -o /dev/null http://127.0.0.1:3100/api/setup; then
   echo 'Checkout is already running; opening it.'
-  open_url http://127.0.0.1:3100/; open_url http://127.0.0.1:3100/showcase/; open_url http://127.0.0.1:3000/new
+  open_url http://127.0.0.1:3100/; open_url http://127.0.0.1:3000/new
   exit 0
 fi
 mkdir -p "$DATA/logs"
@@ -122,11 +121,9 @@ for _ in $(seq 300); do
 done
 [ -n "$WARM" ] && wait "$WARM" || true
 open_url http://127.0.0.1:3100/
-open_url http://127.0.0.1:3100/showcase/
 open_url http://127.0.0.1:3000/new
 printf '\n\033[32mCheckout is running:\033[0m\n'
 echo '  Live agent demo    http://127.0.0.1:3100/'
-echo '  Results page       http://127.0.0.1:3100/showcase/'
 echo '  Store to try       http://127.0.0.1:3000/new'
 echo '  Report             data/report/REPORT.md and REPORT.docx, rebuilt just now'
 printf '\nPress Ctrl+C to stop.\n'

@@ -6,268 +6,305 @@
 <title>Checkout Live Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 :root {
-  --bg: #0B1830; --panel: #112243; --panel-2: #16294A; --ink: #E8EEF7; --ink-2: #B9C6DA; --muted: #8D9DB6;
-  --rule: #263A5E; --tag: #FFD23F; --tag-ink: #0F2240; --blue: #5B93E8; --amber: #F0A13A; --grey: #97A3B6;
-  --a-search: #9DB4D3; --a-item: #5B93E8; --a-option: #F0A13A; --a-buy: #FFD23F; --a-nav: #3A5079;
-  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
-  color-scheme: dark;
+  --mint: #CFE8D6; --mint-2: #B9DCC4; --ink: #121210; --ink-2: rgba(18, 18, 16, .66); --ink-3: rgba(18, 18, 16, .45);
+  --paper: #FFFFFF; --green: #2E8C42; --amber: #E8A030; --amber-soft: #F4D89A; --red: #C03A3A;
+  --display: "Archivo", system-ui, sans-serif; --body: "Hanken Grotesk", system-ui, sans-serif;
+  --mono: "Space Mono", ui-monospace, Consolas, monospace;
+  --b: 3px solid var(--ink); --sh: 4px 4px 0 var(--ink);
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 "Archivo", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
-button, select, input { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--tag); outline-offset: 2px; }
-.app { display: grid; grid-template-rows: auto auto minmax(0, 1fr); height: 100%; min-height: 640px; }
+body { margin: 0; background: var(--mint); color: var(--ink); font: 15px/1.45 var(--body); font-variant-numeric: tabular-nums; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.mono { font-family: var(--mono); }
+.brut { border: var(--b); box-shadow: var(--sh); background: var(--paper); }
+.press:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--ink) !important; }
+.lab { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.tag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border: 2px solid var(--ink); background: var(--paper);
+  font-weight: 700; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.tag.green { background: var(--green); color: #fff; }
+.tag.amber { background: var(--amber); }
+.tag.red { background: var(--red); color: #fff; }
+.tag.ink { background: var(--ink); color: #fff; }
+.tag.live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: blink 1.2s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+kbd { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); padding: 0 4px; background: var(--paper); }
 
-/* ---------- toolbar ---------- */
-header { display: flex; align-items: center; gap: 10px 14px; padding: 10px 18px; border-bottom: 1px solid var(--rule); background: #0D1C38; flex-wrap: wrap; }
-.brand { font-weight: 850; font-stretch: 118%; font-size: 18px; letter-spacing: -.01em; white-space: nowrap; display: flex; align-items: center; gap: 9px; margin-right: 6px; }
-.brand i { width: 10px; height: 10px; border-radius: 50%; background: var(--tag); box-shadow: 0 0 0 2px var(--ink); }
-.brand .live { font-size: 11.5px; font-weight: 750; font-stretch: 100%; color: var(--tag-ink); background: var(--tag); border-radius: 4px; padding: 1px 6px; }
-.brand .live.on { animation: blink 1.6s ease-in-out infinite; }
-@keyframes blink { 50% { opacity: .45; } }
-.field { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13.5px; white-space: nowrap; }
-.field.grow { flex: 1 1 320px; min-width: 0; }
-select { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 7px 10px; color: var(--ink); font-size: 14px; min-width: 0; flex: 1; width: 0; }
-.btn { border: 1px solid var(--rule); background: var(--panel); border-radius: 8px; padding: 7px 13px; cursor: pointer; font-size: 14px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
-.btn:hover { border-color: var(--muted); }
-a.btn { text-decoration: none; color: var(--ink); }
-.btn.go { background: var(--tag); color: var(--tag-ink); border-color: var(--tag); padding: 7px 18px; font-weight: 750; }
-.btn.go:hover { filter: brightness(1.06); }
-.btn.go:disabled { opacity: .5; cursor: wait; }
-.btn.stop { border-color: #6B3A44; color: #FFC2CC; }
-.btn svg { width: 14px; height: 14px; flex: none; }
-.check { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; cursor: pointer; white-space: nowrap; }
-.check input { accent-color: var(--tag); margin: 0; }
-input[type=range] { accent-color: var(--tag); width: 96px; }
-#pace-v { width: 34px; color: var(--ink-2); }
+/* ---------- frame ---------- */
+.app { display: grid; grid-template-columns: 240px minmax(0, 1fr); height: 100%; min-height: 640px; }
+.side { border-right: var(--b); padding: 18px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: auto; }
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.brand-tile { width: 44px; height: 44px; flex: none; display: grid; place-items: center; background: var(--green); color: #fff; font-size: 24px;
+  border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.brand b { display: block; font-family: var(--display); font-weight: 800; font-size: 19px; letter-spacing: .02em; line-height: 1; }
+.brand small { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--ink-2); }
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 12px; border: var(--b); box-shadow: var(--sh);
+  background: var(--paper); font-family: var(--display); font-weight: 600; font-size: 15px; text-decoration: none; color: var(--ink); text-align: left; width: 100%;
+  transition: transform .12s, box-shadow .12s; }
+.nav:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink); }
+.nav span { display: inline-flex; align-items: center; gap: 10px; }
+.nav i { font-size: 20px; }
+.nav em { font-style: normal; }
+.nav .n { font-family: var(--mono); font-size: 12px; background: var(--ink); color: #fff; padding: 1px 7px; }
+.nav[aria-current="true"] { background: var(--ink); color: #fff; }
+.nav[aria-current="true"] .n { background: #fff; color: var(--ink); }
+.nav.store { background: var(--amber); }
+.score-card { margin-top: auto; padding: 12px 13px; }
+.score-card .big { font-family: var(--mono); font-weight: 700; font-size: 34px; line-height: 1; }
+.score-card .big small { font-size: 12px; font-weight: 400; color: var(--ink-2); margin-left: 4px; }
+.dist { display: flex; height: 14px; border: 2px solid var(--ink); margin: 10px 0 6px; overflow: hidden; }
+.dist i { display: block; height: 100%; }
+.dist-key { display: grid; gap: 2px; font-family: var(--mono); font-size: 10.5px; }
+.dist-key span { display: flex; align-items: center; gap: 6px; }
+.dist-key span::before { content: ""; width: 9px; height: 9px; border: 1.5px solid var(--ink); background: var(--c); }
 
-/* ---------- agent lineup ---------- */
-.lineup { display: grid; grid-template-columns: 178px repeat(5, minmax(0, 1fr)); gap: 8px; padding: 10px 18px; border-bottom: 1px solid var(--rule); align-items: stretch; }
-.lineup-label { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; }
-.lineup-label b { font-size: 14px; font-weight: 700; }
-.lineup-label span { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
-.ag { position: relative; text-align: left; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 11px 9px 13px; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto; column-gap: 8px; min-width: 0; overflow: hidden; transition: border-color .2s, background .2s; }
-.ag::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--fam); }
-.ag:hover { border-color: var(--muted); }
-.ag[aria-checked="true"] { background: var(--panel-2); border-color: var(--tag); box-shadow: 0 0 0 1px var(--tag); }
-.ag .nm { font-size: 14.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ag .sub { grid-column: 1; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ag .sc { grid-column: 2; grid-row: 1 / 3; align-self: center; text-align: right; font-size: 24px; font-weight: 850; font-stretch: 72%; line-height: 1; }
-.ag .sc small { display: block; font-size: 11px; font-weight: 500; font-stretch: 100%; color: var(--muted); margin-top: 3px; }
-.ag .sc.none { color: var(--muted); font-size: 18px; }
-.ag .bar { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--bg); margin-top: 7px; overflow: hidden; }
-.ag .bar i { display: block; height: 100%; width: var(--w, 0%); background: var(--fam); border-radius: 2px; transition: width .5s cubic-bezier(.2, .8, .2, 1); }
-.ag .sc small em { font-style: normal; font-weight: 750; color: var(--tag); }
-.ag.running .bar i { background: repeating-linear-gradient(90deg, var(--tag) 0 8px, transparent 8px 14px); width: 100%; animation: march 0.8s linear infinite; background-size: 28px 100%; }
-@keyframes march { to { background-position: 28px 0; } }
+.main { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-width: 0; min-height: 0; }
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 14px 22px; border-bottom: var(--b); }
+.title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.top h1 { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; margin: 0; letter-spacing: -.01em; }
+.status-line { margin: 6px 0 0; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--ink-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top > div:first-child { flex: 1 1 360px; min-width: 0; }
+.ask { display: flex; gap: 10px; flex: 1 1 380px; max-width: 620px; }
+.ask label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; padding: 0 12px; }
+.ask input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 10px 0; font-size: 15px; outline: none; }
+.ask .go { flex: none; background: var(--ink); color: #fff; border: var(--b); box-shadow: var(--sh); padding: 0 16px; font-family: var(--display); font-weight: 700; }
+.tabs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0; padding: 12px 22px 0; border-bottom: var(--b); }
+.tabs button { border: var(--b); border-bottom: 0; margin-bottom: -3px; background: var(--paper); padding: 8px 16px; font-family: var(--display); font-weight: 600; font-size: 14.5px; }
+.tabs button + button { border-left: 0; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: #fff; }
+.tabs button .n { font-family: var(--mono); font-size: 11px; margin-left: 6px; opacity: .7; }
+.tabs .hint { margin-left: auto; padding-bottom: 8px; }
 
-/* ---------- main ---------- */
-main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(340px, 1fr); gap: 14px; padding: 14px 18px 16px; min-height: 0; }
-.stage { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; min-height: 0; }
-.browser { display: grid; grid-template-rows: auto minmax(0, 1fr); background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 1px var(--rule), 0 24px 60px -30px #000; min-height: 0; position: relative; }
-.chrome { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #E9EEF4; color: #3A4B67; font-size: 13px; }
-.chrome .dots { display: flex; gap: 6px; }
-.chrome .dots i { width: 11px; height: 11px; border-radius: 50%; background: #C8D2DF; }
-.chrome .url { flex: 1; min-width: 0; background: #fff; border-radius: 999px; padding: 4px 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--mono); font-size: 12.5px; }
-.chrome .stepno { font-weight: 750; color: #0F2240; white-space: nowrap; }
-iframe { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
+.work { display: grid; grid-template-columns: 320px minmax(0, 1fr); min-height: 0; }
+.queue { position: relative; border-right: var(--b); padding: 18px 16px 24px; overflow: auto; min-height: 0; display: flex; flex-direction: column; gap: 18px;
+  background-image: linear-gradient(rgba(18,18,16,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(18,18,16,.07) 1px, transparent 1px); background-size: 24px 24px; }
+.req { position: relative; text-align: left; width: 100%; padding: 16px 14px 12px; border: var(--b); box-shadow: var(--sh); background: var(--paper);
+  transition: transform .12s, box-shadow .12s; }
+.req:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+.req[aria-current="true"] { background: #F2FBF4; box-shadow: 7px 7px 0 var(--green); }
+.req-id { position: absolute; top: -12px; left: 10px; font-family: var(--mono); font-size: 10.5px; font-weight: 700; padding: 1px 7px;
+  border: 2px solid var(--ink); background: var(--amber-soft); }
+.req[aria-current="true"] .req-id { background: var(--green); color: #fff; }
+.req-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; }
+.req-text { margin: 0; font-weight: 600; font-size: 14.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.req-score { text-align: right; font-family: var(--mono); font-weight: 700; font-size: 22px; line-height: 1; }
+.req-score small { display: block; font-size: 9.5px; font-weight: 400; letter-spacing: .1em; color: var(--ink-2); margin-top: 4px; }
+.req-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.queue .none { font-family: var(--mono); font-size: 12px; color: var(--ink-2); padding: 12px; border: 2px dashed var(--ink-3); background: var(--paper); }
 
-.empty { position: absolute; inset: 41px 0 0; display: grid; place-items: center; padding: 28px; background: #F4F7FB; color: #3A4B67; overflow: auto; }
-.empty .in { max-width: 600px; }
-.empty h2 { font-size: 34px; font-stretch: 118%; font-weight: 860; letter-spacing: -.025em; margin: 0 0 6px; color: #0F2240; line-height: 1.05; }
-.empty p { margin: 0 0 18px; font-size: 15.5px; }
-.mdp { display: grid; grid-template-columns: auto 1fr; gap: 0; margin: 0; border-top: 1px solid #D5DEEA; }
-.mdp dt, .mdp dd { padding: 10px 0; border-bottom: 1px solid #D5DEEA; margin: 0; }
-.mdp dt { font-weight: 750; color: #0F2240; padding-right: 22px; }
-.mdp dd { font-size: 14.5px; }
-.mdp code { font-family: var(--mono); font-size: 13px; background: #E3EAF4; border-radius: 4px; padding: 1px 5px; color: #0F2240; }
-.empty .keys { margin-top: 16px; font-size: 13px; color: #5B6C86; }
-kbd { font-family: var(--mono); font-size: 12px; border: 1px solid #B7C4D6; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: #fff; color: #0F2240; }
-.empty pre { text-align: left; white-space: pre-wrap; font-size: 12px; color: #8a1c1c; max-width: 80ch; }
+/* ---------- stage ---------- */
+.stage { display: grid; grid-template-rows: minmax(200px, 1fr) auto auto; overflow: hidden; gap: 14px; padding: 18px 22px 20px; min-height: 0; min-width: 0; }
+.window { display: grid; grid-template-rows: auto minmax(0, 1fr); border: var(--b); box-shadow: 6px 6px 0 var(--ink); background: var(--paper); min-height: 0; }
+.chrome { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-bottom: var(--b); background: var(--mint); min-width: 0; }
+.dots { display: flex; gap: 5px; }
+.dots i { width: 11px; height: 11px; border: 2px solid var(--ink); border-radius: 50%; background: var(--paper); }
+.dots i:first-child { background: var(--red); } .dots i:nth-child(2) { background: var(--amber); } .dots i:last-child { background: var(--green); }
+.url { flex: 1; min-width: 0; font-family: var(--mono); font-size: 11.5px; padding: 4px 10px; border: 2px solid var(--ink); background: var(--paper);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ctl { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border: 2px solid var(--ink); background: var(--paper); font-family: var(--mono);
+  font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; text-decoration: none; color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.ctl i { font-size: 15px; }
+.ctl.stop { background: var(--red); color: #fff; }
+.ctl input[type=range] { width: 70px; accent-color: var(--ink); margin: 0; }
+.screen { position: relative; overflow: hidden; background: #F2F5F9; min-height: 0; }
+.screen iframe { position: absolute; left: 0; top: 0; border: 0; background: #fff; transform-origin: 0 0; }
+.empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: var(--mint);
+  background-image: radial-gradient(circle, rgba(18,18,16,.22) 1.4px, transparent 1.5px); background-size: 20px 20px; overflow: auto; }
+.empty .card { max-width: 560px; padding: 22px 24px; }
+.empty h2 { font-family: var(--display); font-weight: 800; font-size: 28px; line-height: 1.05; margin: 0 0 12px; }
+.empty ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.empty pre { white-space: pre-wrap; font-size: 11px; color: var(--red); max-height: 40vh; overflow: auto; }
+.stamp { position: absolute; left: 50%; top: 46%; pointer-events: none; text-align: center; font-family: var(--display); font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--c); border: 7px solid var(--c); border-radius: 6px; padding: 12px 30px 14px;
+  background: rgba(255, 255, 255, .84); transform: translate(-50%, -50%) rotate(-8deg); }
+.stamp::before, .stamp::after { content: ""; position: absolute; border-radius: 3px; }
+.stamp::before { inset: 5px; border: 2px solid var(--c); opacity: .55; }
+.stamp::after { inset: -11px; border: 2px dashed var(--c); opacity: .35; }
+.stamp b { display: block; font-size: clamp(30px, 5vw, 58px); line-height: 1; }
+.stamp span { display: block; font-family: var(--mono); font-size: 13px; letter-spacing: .12em; margin-top: 6px; }
+.stamp.slam { animation: slam 520ms cubic-bezier(.2, 1.3, .4, 1) both; }
+@keyframes slam { 0% { transform: translate(-50%, -50%) rotate(-14deg) scale(1.9); opacity: 0; } 60% { opacity: 1; } 100% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); } }
 
-/* ---------- verdict (end of episode) ---------- */
-.verdict { position: absolute; inset: 41px 0 0; display: grid; place-items: safe center; overflow: auto; padding: 16px; background: rgba(11, 24, 48, .62); backdrop-filter: blur(3px); }
-.vcard { width: min(560px, 100%); background: var(--panel); color: var(--ink); border-radius: 14px; box-shadow: 0 0 0 1px var(--rule), 0 30px 80px -20px #000; overflow: hidden; transform-origin: 50% -40px; }
-.verdict.go .vcard { animation: swing 900ms cubic-bezier(.25, 1.5, .45, 1) both; }
-@keyframes swing { 0% { transform: translateY(-40px) rotate(-7deg); opacity: 0; } 35% { opacity: 1; } 100% { transform: none; } }
-.vtop { display: grid; grid-template-columns: auto 1fr; gap: 4px 20px; align-items: end; padding: 18px 22px 16px; background: var(--tag); color: var(--tag-ink); position: relative; }
-.vtop::after { content: ""; position: absolute; right: 22px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background: var(--panel); box-shadow: inset 0 0 0 2px rgba(15, 34, 64, .25); }
-.vtop .lab { grid-column: 1 / -1; font-size: 13px; font-weight: 650; }
-.vtop .num { font-size: 92px; font-weight: 900; font-stretch: 64%; line-height: .82; letter-spacing: -.02em; }
-.vtop .num small { font-size: 18px; font-weight: 700; font-stretch: 100%; margin-left: 4px; letter-spacing: 0; }
-.vtop .kind { font-size: 21px; font-weight: 800; font-stretch: 105%; line-height: 1.1; padding-bottom: 6px; }
-.vtop .kind span { display: block; font-size: 13.5px; font-weight: 550; margin-top: 4px; }
-.vbody { padding: 16px 22px 18px; display: grid; gap: 14px; }
-.bought { font-size: 14px; color: var(--ink-2); }
-.bought b { display: block; color: var(--ink); font-size: 15px; font-weight: 650; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.parts { display: grid; grid-template-columns: 110px minmax(0, 1fr) 92px; gap: 7px 12px; align-items: center; font-size: 13.5px; }
-.parts span { color: var(--muted); }
-.parts i { height: 6px; border-radius: 3px; background: var(--bg); overflow: hidden; display: block; }
-.parts i::after { content: ""; display: block; height: 100%; width: var(--w); background: var(--blue); border-radius: 3px; transition: width .8s .35s cubic-bezier(.2, .8, .2, 1); }
-.verdict:not(.go) .parts i::after { width: 0; }
-.parts i.full::after { background: var(--tag); }
-.parts b { text-align: right; font-weight: 700; }
-.compare { font-size: 13.5px; color: var(--ink-2); padding: 10px 12px; border-radius: 8px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--rule); }
-.compare b { color: var(--ink); }
-.vact { display: flex; flex-wrap: wrap; gap: 8px; }
-
-/* ---------- episode strip ---------- */
-.track { background: var(--panel); border-radius: 12px; box-shadow: inset 0 0 0 1px var(--rule); padding: 10px 14px 10px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 14px; align-items: center; }
-.track .tl { font-size: 13px; font-weight: 650; color: var(--ink-2); white-space: nowrap; }
+.strip { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 12px; }
+.strip .lab { white-space: nowrap; }
 .cells { display: grid; grid-template-columns: repeat(100, minmax(0, 1fr)); gap: 2px; height: 16px; }
-.cells i { border-radius: 2px; background: #182D52; }
-.cells i.search { background: var(--a-search); }
-.cells i.item { background: var(--a-item); }
-.cells i.option { background: var(--a-option); }
-.cells i.nav { background: var(--a-nav); }
-.cells i.buy { background: var(--a-buy); box-shadow: 0 0 0 2px var(--ink); }
-.cells i.new { animation: cell 420ms cubic-bezier(.3, 1.6, .4, 1); }
-@keyframes cell { from { transform: scaleY(0.2); filter: brightness(2); } }
-.rtag { font-size: 13px; font-weight: 750; white-space: nowrap; padding: 3px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); box-shadow: inset 0 0 0 1px var(--rule); }
-.rtag.paid { background: var(--tag); color: var(--tag-ink); box-shadow: none; }
-.tfoot { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 18px; font-size: 12.5px; color: var(--muted); }
-.legend { display: flex; flex-wrap: wrap; gap: 2px 14px; }
-.legend span { display: inline-flex; align-items: center; gap: 6px; }
-.legend span::before { content: ""; width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
-.legend .lb::before { box-shadow: 0 0 0 1.5px var(--ink); }
+.cells i { background: var(--mint); border: 1px solid rgba(18,18,16,.18); }
+.cells i.search { background: var(--ink); border-color: var(--ink); }
+.cells i.item { background: var(--green); border-color: var(--ink); }
+.cells i.nav { background: var(--mint-2); border-color: var(--ink); }
+.cells i.option { background: var(--amber); border-color: var(--ink); }
+.cells i.buy { background: var(--red); border-color: var(--ink); }
+.cells i.new { animation: pop 380ms cubic-bezier(.3, 1.6, .4, 1); }
+@keyframes pop { from { transform: scaleY(.2); } }
+.reward { font-family: var(--mono); font-weight: 700; font-size: 12px; padding: 3px 9px; border: 2px solid var(--ink); background: var(--paper); white-space: nowrap; }
+.reward.paid { background: var(--green); color: #fff; }
+.legend { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend span::before { content: ""; width: 10px; height: 10px; border: 1.5px solid var(--ink); background: var(--c); }
 
-/* ---------- side panels ---------- */
-aside { display: grid; grid-template-rows: auto minmax(0, auto) minmax(120px, 1fr); gap: 12px; min-height: 0; }
-.card { background: var(--panel); border-radius: 12px; padding: 13px 16px; box-shadow: inset 0 0 0 1px var(--rule); min-height: 0; }
-.card h3 { margin: 0 0 8px; font-size: 13px; font-weight: 650; color: var(--muted); display: flex; justify-content: space-between; gap: 10px; }
-.card h3 em { font-style: normal; font-weight: 500; }
-.req { font-size: 18px; line-height: 1.35; font-weight: 560; font-stretch: 95%; margin: 0; }
-.req small { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; font-weight: 400; font-stretch: 100%; }
-.think { overflow: auto; max-height: 46vh; }
-.action-now { font-family: var(--mono); font-size: 13.5px; background: var(--bg); border-radius: 8px; padding: 8px 10px; box-shadow: inset 0 0 0 1px var(--rule); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.action-now b { color: var(--tag); font-weight: 600; }
-.probs { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; }
-.probs li { display: grid; grid-template-columns: minmax(0, 1fr) 54px; gap: 2px 10px; font-size: 13px; align-items: center; }
-.probs li span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-2); }
-.probs li.pick span:first-child { color: var(--ink); font-weight: 650; }
-.probs li b { text-align: right; font-weight: 700; }
-.probs li i { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--bg); overflow: hidden; display: block; }
-.probs li i::after { content: ""; display: block; height: 100%; width: var(--w); background: var(--blue); border-radius: 3px; transition: width 400ms cubic-bezier(.2, .8, .2, 1); }
-.probs li.pick i::after { background: var(--tag); }
-.critic { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--rule); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; font-size: 13px; }
-.critic span { color: var(--muted); }
-.critic i { height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; display: block; }
-.critic i::after { content: ""; display: block; height: 100%; width: var(--w); background: linear-gradient(90deg, var(--blue), #9CC0F5); border-radius: 4px; transition: width 400ms cubic-bezier(.2, .8, .2, 1); }
-.critic b { font-weight: 750; }
-.critic p { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 12.5px; }
-.kv { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 10px; font-size: 13px; color: var(--muted); }
-.kv b { color: var(--ink); }
-.why { color: var(--ink-2); font-size: 14px; margin: 10px 0 0; }
-.log { display: grid; grid-template-rows: auto minmax(0, 1fr); }
-.log ol { margin: 0; padding: 0 2px 0 0; list-style: none; display: flex; flex-direction: column; gap: 2px; overflow: auto; min-height: 0; }
-.log li { display: grid; grid-template-columns: 24px 8px minmax(0, 1fr); gap: 8px; align-items: baseline; font-family: var(--mono); font-size: 12.5px; padding: 3px 6px; border-radius: 5px; color: var(--ink-2); overflow-wrap: anywhere; }
-.log li .n { color: var(--muted); text-align: right; }
-.log li .t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.log li .d { width: 8px; height: 8px; border-radius: 2px; background: var(--c); align-self: center; }
-.log li.now { background: var(--panel-2); color: var(--ink); }
-.log li.new { animation: slide 380ms cubic-bezier(.2, .8, .2, 1); }
-.log .none { color: var(--muted); font-size: 13.5px; font-family: inherit; display: block; }
-@keyframes slide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+.panels { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, .95fr); gap: 14px; height: 218px; min-height: 0; }
+.panel { padding: 11px 13px; min-height: 0; overflow: auto; }
+.panel h3 { margin: 0 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.kv { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--mono); font-size: 11.5px; margin-bottom: 6px; }
+.kv b { font-size: 13px; }
+.reading { margin: 0 0 6px; font-size: 13px; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.bars li { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 1px 8px; align-items: center; font-size: 12.5px; }
+.bars li span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars li b { font-family: var(--mono); text-align: right; font-size: 12px; }
+.bars li i { grid-column: 1 / -1; height: 6px; border: 1.5px solid var(--ink); background: var(--paper); overflow: hidden; display: block; }
+.bars li i::after { content: ""; display: block; height: 100%; width: var(--w); background: var(--ink-3); transition: width .35s; }
+.bars li.best span { font-weight: 700; }
+.bars li.best i::after { background: var(--green); }
+.log ol { list-style: none; margin: 0; padding: 0; font-family: var(--mono); font-size: 11.5px; display: grid; gap: 1px; }
+.log li { display: grid; grid-template-columns: 28px 9px minmax(0, 1fr); gap: 7px; align-items: center; padding: 2px 4px; }
+.log li .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log li .d { width: 9px; height: 9px; border: 1.5px solid var(--ink); background: var(--c); }
+.log li.now { background: var(--mint); }
+.log .n { color: var(--ink-3); }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 12.5px; }
+.checks li { display: flex; justify-content: space-between; gap: 10px; }
+.checks b { font-family: var(--mono); font-size: 12px; }
+.ok { color: var(--green); } .mid { color: #9A5B00; } .bad { color: var(--red); }
+.muted { color: var(--ink-2); font-size: 13px; margin: 0; }
+.again { margin-top: 10px; width: 100%; justify-content: center; }
 
-@media (max-height: 800px) {
-  .vtop { padding: 14px 20px 12px; }
-  .vtop .num { font-size: 68px; }
-  .vbody { padding: 12px 20px 14px; gap: 10px; }
-  .parts { gap: 4px 12px; }
-  .compare { padding: 7px 10px; }
+/* ---------- the screen on its own (opened in a new tab) ---------- */
+.solo .side, .solo .tabs, .solo .queue, .solo .panels, .solo .ask { display: none; }
+.solo .app { grid-template-columns: 1fr; }
+.solo .main { grid-template-rows: auto minmax(0, 1fr); }
+.solo .stage { grid-template-rows: minmax(0, 1fr) auto; }
+.solo .work { grid-template-columns: 1fr; }
+.solo .top { padding: 10px 18px; }
+.solo .top h1 { font-size: 20px; }
+
+@media (max-height: 820px) {
+  .top { padding: 9px 22px; }
+  .top h1 { font-size: 24px; }
+  .tabs { padding-top: 8px; }
+  .tabs button { padding: 6px 14px; }
+  .stage { gap: 10px; padding: 12px 18px 14px; }
+  .panels { height: 170px; }
+  .strip .legend { display: none; }
 }
-@media (max-width: 1180px) {
-  .lineup { display: flex; overflow-x: auto; }
-  .lineup-label { flex: 0 0 140px; }
-  .ag { flex: 0 0 170px; }
+@media (max-width: 1360px) {
+  .app { grid-template-columns: 70px minmax(0, 1fr); }
+  .side { padding: 14px 10px; align-items: center; }
+  .brand b, .brand small, .side > .lab, .nav span em, .nav .n, .score-card { display: none; }
+  .nav { justify-content: center; padding: 10px; }
+  .work { grid-template-columns: 280px minmax(0, 1fr); }
 }
-@media (max-width: 980px) {
+@media (max-width: 1100px) {
   .app { height: auto; }
-  main { grid-template-columns: minmax(0, 1fr); }
-  .browser { min-height: 72vh; }
-  aside { grid-template-rows: auto auto auto; }
-  .log ol { max-height: 300px; }
+  .work { grid-template-columns: 1fr; }
+  .queue { border-right: 0; border-bottom: var(--b); max-height: 340px; }
+  .stage { grid-template-rows: 62vh auto auto; }
+  .panels { grid-template-columns: 1fr; height: auto; }
+  .panel { max-height: 240px; }
 }
 @media (max-width: 640px) {
-  header { padding: 10px 14px; }
-  .lineup, main { padding-left: 14px; padding-right: 14px; }
-  .field.grow { flex-basis: 100%; }
-  .vtop .num { font-size: 72px; }
-  .parts { grid-template-columns: 92px minmax(0, 1fr) 80px; }
-  .track { grid-template-columns: 1fr auto; }
-  .track .tl { grid-column: 1; }
-  .cells { grid-column: 1 / -1; grid-row: 2; }
+  .app { grid-template-columns: 1fr; }
+  .side { flex-direction: row; border-right: 0; border-bottom: var(--b); overflow-x: auto; }
+  .brand { margin: 0; }
+  .top h1 { font-size: 24px; }
+  .ask { flex-basis: 100%; }
+  .stage { padding: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
 <div class="app">
-  <header>
-    <div class="brand"><i></i>Checkout <span class="live" id="live">LIVE</span></div>
-    <label class="field grow">Request <select id="goal" disabled><option>Loading…</option></select></label>
-    <button class="btn" id="random" type="button" title="Random request (R)">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h3l6 8h3M2 12h3l1.5-2M11 4h3m0 0-2-2m2 2-2 2m2 6-2-2m2 2-2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Random</button>
-    <label class="check" title="Random only picks requests where the agents' recorded scores differ by 50 points or more"><input type="checkbox" id="contrast" checked>where agents disagree</label>
-    <label class="field">Pace <input type="range" id="pace" min="0" max="3" step="0.1" value="1.2" aria-label="Seconds per step"><span id="pace-v">1.2 s</span></label>
-    <button class="btn go" id="start" type="button" disabled title="Start (Space)">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>Start</button>
-    <button class="btn stop" id="stop" type="button" hidden title="Stop (S)">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9" rx="1.5" fill="currentColor"/></svg>Stop</button>
-    <a class="btn" id="human" target="_blank" rel="noopener" href="http://127.0.0.1:3000/fixed_0" title="Opens this request in the store, for a person to shop">Try it yourself</a>
-    <a class="btn" href="/showcase/" target="_blank" rel="noopener" title="Scores of all 13 agents on the 500 test requests, and the training run">Results</a>
-  </header>
+  <aside class="side" aria-label="Workspace">
+    <div class="brand"><span class="brand-tile"><i class="ti ti-shopping-cart" aria-hidden="true"></i></span>
+      <div><b>CHECKOUT</b><small>VALUE SHOPPER · LIVE</small></div></div>
+    <span class="lab">Workspace</span>
+    <button class="nav press" type="button" data-mode="tests" aria-current="true" title="Test requests">
+      <span><i class="ti ti-list-check" aria-hidden="true"></i><em>Test requests</em></span><span class="n" id="n-tests">500</span></button>
+    <button class="nav press" type="button" data-mode="mine" title="Your requests">
+      <span><i class="ti ti-message-2" aria-hidden="true"></i><em>Your requests</em></span><span class="n" id="n-mine">0</span></button>
+    <a class="nav store press" id="try" href="http://127.0.0.1:3000/new" target="_blank" rel="noopener" title="Shop a request yourself">
+      <span><i class="ti ti-building-store" aria-hidden="true"></i><em>Try it yourself</em></span><i class="ti ti-arrow-up-right" aria-hidden="true"></i></a>
+    <div class="score-card brut" id="score-card" hidden>
+      <span class="lab">Test score</span>
+      <div class="big" id="sc-mean">0<small>/ 100</small></div>
+      <div class="dist" id="sc-dist" role="img"></div>
+      <div class="dist-key" id="sc-key"></div>
+    </div>
+  </aside>
 
-  <div class="lineup" role="radiogroup" aria-label="Agent">
-    <div class="lineup-label"><b id="lineup-title">Agents</b><span id="status">Loading the store…</span></div>
-  </div>
+  <div class="main">
+    <header class="top">
+      <div>
+        <div class="title-row"><h1>Value shopper</h1><span class="tag" id="t-req">No request</span><span class="tag" id="t-state">Loading</span></div>
+        <p class="status-line" id="status-line">Loading the store: 1,181,430 products</p>
+      </div>
+      <form class="ask" id="ask" autocomplete="off">
+        <label class="brut"><i class="ti ti-search" aria-hidden="true"></i><span class="sr" hidden>Your shopping request</span>
+          <input id="ask-text" type="text" placeholder="Type any shopping request, then run it" maxlength="300" aria-label="Your shopping request"><kbd>/</kbd></label>
+        <button class="go press" type="submit"><i class="ti ti-plus" aria-hidden="true"></i> RUN REQUEST</button>
+      </form>
+    </header>
 
-  <main>
-    <div class="stage">
-      <section class="browser" aria-label="The store page the agent sees">
-        <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="url" id="url">webshop</span><span class="stepno" id="stepno"></span></div>
-        <iframe id="page" title="Store page" sandbox="allow-scripts allow-same-origin"></iframe>
-        <div class="empty" id="empty"><div class="in">
-          <h2>Watch an agent shop</h2>
-          <p>Pick an agent and one of the 500 test requests, then press Start. Every decision is made live on this computer, on the full store of 1,181,430 products.</p>
-          <dl class="mdp">
-            <dt>State</dt><dd>The page the agent is on, as text, plus the request.</dd>
-            <dt>Action</dt><dd><code>search[query]</code> or <code>click[…]</code>, chosen from the actions the page allows.</dd>
-            <dt>Reward</dt><dd>0 to 100, paid once, when the agent buys. Every step before that earns 0.</dd>
-          </dl>
-          <div class="keys"><kbd>1</kbd> to <kbd>5</kbd> pick an agent, <kbd>R</kbd> random request, <kbd>Space</kbd> start, <kbd>N</kbd> run the next agent</div>
-        </div></div>
-        <div class="verdict" id="verdict" hidden><div class="vcard" role="dialog" aria-labelledby="v-kind">
-          <div class="vtop"><span class="lab" id="v-lab">Reward from the store</span><div class="num" id="v-num">0<small>/ 100</small></div><div class="kind" id="v-kind"></div></div>
-          <div class="vbody">
-            <div class="bought" id="v-bought"></div>
-            <div class="parts" id="v-parts"></div>
-            <div class="compare" id="v-compare"></div>
-            <div class="vact"><button class="btn go" id="v-next" type="button"></button><button class="btn" id="v-close" type="button">Show the store page</button></div>
+    <nav class="tabs" role="tablist" aria-label="Filter test requests" id="tabs">
+      <button type="button" role="tab" data-f="all" aria-selected="true">All<span class="n" id="f-all"></span></button>
+      <button type="button" role="tab" data-f="exact">Exact<span class="n" id="f-exact"></span></button>
+      <button type="button" role="tab" data-f="partial">Partial<span class="n" id="f-partial"></span></button>
+      <button type="button" role="tab" data-f="missed">Missed<span class="n" id="f-missed"></span></button>
+      <span class="hint lab">Recorded test scores. Click a request to run it live.</span>
+    </nav>
+
+    <div class="work">
+      <section class="queue" id="queue" aria-label="Requests"></section>
+
+      <section class="stage" aria-label="The value shopper at work">
+        <div class="window">
+          <div class="chrome">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="url" id="url">webshop</span>
+            <span class="ctl" id="stepno">Step 0</span>
+            <label class="ctl" title="Seconds between steps">Pace <input type="range" id="pace" min="0" max="3" step="0.1" value="1.2"><span id="pace-v">1.2s</span></label>
+            <button class="ctl stop press" id="stop" type="button" hidden><i class="ti ti-player-stop" aria-hidden="true"></i>Stop</button>
+            <a class="ctl press" id="pop" href="/?view=screen" target="_blank" rel="noopener" title="Open the screen in a new tab"><i class="ti ti-external-link" aria-hidden="true"></i>New tab</a>
           </div>
-        </div></div>
-      </section>
-      <section class="track" aria-label="Episode">
-        <span class="tl" id="t-label">Episode</span>
-        <div class="cells" id="cells" aria-hidden="true"></div>
-        <span class="rtag" id="rtag" title="WebShop pays the reward only when the agent buys">reward 0</span>
-        <div class="tfoot">
-          <div class="legend"><span style="--c:var(--a-search)">Search</span><span style="--c:var(--a-item)">Open a product</span><span style="--c:var(--a-option)">Choose an option</span><span style="--c:var(--a-nav)">Read or go back</span><span class="lb" style="--c:var(--a-buy)">Buy</span></div>
-          <span id="t-note">One cell per step, up to the 100-step limit.</span>
+          <div class="screen" id="screen">
+            <iframe id="page" title="The store, as the value shopper sees it" sandbox="allow-scripts allow-same-origin"></iframe>
+            <div class="empty" id="empty"><div class="card brut">
+              <h2>Watch the value shopper shop.</h2>
+              <ol>
+                <li>Pick a test request on the left, or type your own request above and press Run request.</li>
+                <li>It searches, reads two pages of results, opens up to 14 products and buys the one its value model scores highest.</li>
+                <li>The store scores test requests out of 100. Your own requests have no answer key, so they are not scored.</li>
+              </ol>
+            </div></div>
+            <div class="stamp" id="stamp" hidden><b id="stamp-b"></b><span id="stamp-s"></span></div>
+          </div>
+        </div>
+
+        <div class="strip brut">
+          <span class="lab" id="t-label">Episode</span>
+          <div class="cells" id="cells" aria-hidden="true"></div>
+          <span class="reward" id="reward" title="The store pays the reward only when the agent buys">REWARD 0</span>
+          <div class="legend"><span style="--c:var(--ink)">Search</span><span style="--c:var(--green)">Open a product</span><span style="--c:var(--mint-2)">Read or go back</span><span style="--c:var(--amber)">Choose an option</span><span style="--c:var(--red)">Buy</span><span id="t-note">One cell per step, up to the 100-step limit</span></div>
+        </div>
+
+        <div class="panels">
+          <section class="panel brut" aria-label="What it decided"><h3><span class="lab">Decision</span><span class="tag" id="d-stage">Idle</span></h3><div id="think"><p class="muted">Its reasoning appears here at every step.</p></div></section>
+          <section class="panel brut log" aria-label="Step log"><h3><span class="lab">Step log</span><span class="lab" id="log-n"></span></h3><ol id="log"></ol></section>
+          <section class="panel brut" aria-label="Result"><h3><span class="lab">Result</span></h3><div id="result"><p class="muted">The store scores the purchase when it buys.</p></div></section>
         </div>
       </section>
     </div>
-    <aside>
-      <div class="card"><h3>The request</h3><p class="req" id="req">No request yet.</p></div>
-      <div class="card think" id="think"><h3>What the agent decided</h3><p class="why">Its reasoning appears here at every step.</p></div>
-      <div class="card log"><h3>Actions <em id="log-n"></em></h3><ol id="log"><li class="none">No actions yet.</li></ol></div>
-    </aside>
-  </main>
+  </div>
 </div>
 <script>
 (function () {
@@ -276,38 +313,29 @@ const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt1 = v => (Math.round(v * 10) / 10).toFixed(1);
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const pad = (n, w) => String(n).padStart(w, '0');
+const AGENT = 'value_shopper', SCREEN_W = 1440;
+const Q = new URLSearchParams(location.search), SOLO = Q.get('view') === 'screen';
+if (SOLO) document.body.classList.add('solo');
+const S = { run: 0, since: 0, queue: [], goals: [], rec: {}, running: false, steps: 0, startEv: null, mode: 'tests', filter: 'all',
+            current: null, mine: [] };
+try { S.mine = JSON.parse(localStorage.getItem('checkout-mine-v1') || '[]') || []; } catch (e) { S.mine = []; }
+const saveMine = () => { try { localStorage.setItem('checkout-mine-v1', JSON.stringify(S.mine.slice(0, 50))); } catch (e) { /* private window */ } };
 
-// Teaching order: a fixed rule, then learning from people, then RL, then both, then the value model.
-const ORDER = ['rule_softmax', 'il_seed0_greedy', 'rl_scratch_greedy', 'il_rl_greedy', 'value_shopper'];
-const INFO = {
-  rule_softmax: { name: 'Rule baseline', sub: 'Fixed rule, no learning', fam: 'var(--grey)' },
-  il_seed0_greedy: { name: 'IL', sub: 'BERT copying people', fam: 'var(--blue)' },
-  rl_scratch_greedy: { name: 'RL from BERT', sub: 'A2C only', fam: 'var(--blue)' },
-  il_rl_greedy: { name: 'IL+RL', sub: 'IL, then A2C', fam: 'var(--blue)' },
-  value_shopper: { name: 'Value shopper', sub: 'Learned value model', fam: 'var(--amber)' },
-};
-const S = { run: 0, since: 0, recorded: {}, goals: [], queue: [], agents: [], agent: null, running: false,
-            steps: 0, lastItem: null, startEv: null, live: {} };
-try { S.live = JSON.parse(localStorage.getItem('webshop-live-v1') || '{}') || {}; } catch (e) { S.live = {}; }
-const saveLive = () => { try { localStorage.setItem('webshop-live-v1', JSON.stringify(S.live)); } catch (e) { /* private window */ } };
-
-function kindOf(action) {
-  if (action.startsWith('search[')) return 'search';
-  const arg = action.slice(6, -1).toLowerCase();
-  if (arg.startsWith('item - ')) return 'item';
-  if (arg === 'buy now') return 'buy';
-  if (['back to search', '< prev', 'next >', 'description', 'features', 'reviews', 'attributes'].includes(arg)) return 'nav';
-  return 'option';
+/* ---------- the screen: the whole page at desktop width, scaled to fit ---------- */
+function fit() {
+  const box = $('#screen').getBoundingClientRect(), s = Math.max(.1, box.width / SCREEN_W);
+  const f = $('#page');
+  f.style.width = SCREEN_W + 'px'; f.style.height = (box.height / s) + 'px'; f.style.transform = `scale(${s})`;
 }
-const KIND_COLOR = { search: 'var(--a-search)', item: 'var(--a-item)', option: 'var(--a-option)', nav: 'var(--a-nav)', buy: 'var(--a-buy)' };
+new ResizeObserver(fit).observe($('#screen'));
 
-// Runs inside each store page: moves a cursor to what the agent chose and highlights it.
+// Runs inside each page: moves a cursor to what the agent chose and marks it.
 const PAGE_SCRIPT = `
 <style>
 a, button, input, label, form { pointer-events: none !important; }
-.agent-target { outline: 4px solid #FFD23F !important; outline-offset: 3px; box-shadow: 0 0 0 10px rgba(255,210,63,.35) !important; border-radius: 4px; transition: outline-offset .3s; }
-#agent-cursor { position: absolute; z-index: 9999; width: 26px; height: 26px; left: 50%; top: 40%; transition: left .7s cubic-bezier(.3,.8,.3,1), top .7s cubic-bezier(.3,.8,.3,1); pointer-events: none; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+.agent-target { outline: 5px solid #121210 !important; outline-offset: 4px; box-shadow: 0 0 0 10px rgba(232,160,48,.55) !important; }
+#agent-cursor { position: absolute; z-index: 9999; width: 34px; height: 34px; transition: left .7s cubic-bezier(.3,.8,.3,1), top .7s cubic-bezier(.3,.8,.3,1); pointer-events: none; filter: drop-shadow(3px 3px 0 #121210); }
 #agent-cursor.click { animation: agclick .35s ease; }
 @keyframes agclick { 50% { transform: scale(.75); } }
 @media (prefers-reduced-motion: reduce) { #agent-cursor { transition: none; } }
@@ -316,23 +344,28 @@ a, button, input, label, form { pointer-events: none !important; }
 (function(){
   var T = window.__T__ || {kind:'none'};
   var norm = function(s){ return String(s||'').toLowerCase().replace(/\\s+/g,' ').trim(); };
-  var want = norm(T.text), el = null;
+  var want = norm(T.text), el = null, i;
   if (T.kind === 'search') el = document.getElementById('search_input');
-  else if (T.kind === 'item') { var ls = document.querySelectorAll('a.product-link'); for (var i=0;i<ls.length;i++) if (norm(ls[i].textContent) === want) { el = ls[i].closest('.list-group-item') || ls[i]; break; } }
-  else if (T.kind === 'click') {
-    var bs = document.querySelectorAll('button'); for (var j=0;j<bs.length;j++) if (norm(bs[j].textContent) === want) { el = bs[j]; break; }
-    if (!el) { var rs = document.querySelectorAll('input[type=radio]'); for (var k=0;k<rs.length;k++) if (norm(rs[k].value) === want) { el = document.querySelector('label[for="'+rs[k].id+'"]') || rs[k]; break; } }
+  else if (T.kind === 'item' || T.kind === 'click') {
+    var acts = document.querySelectorAll('[data-act]');
+    for (i = 0; i < acts.length; i++) if (norm(acts[i].getAttribute('data-act')) === want) { el = acts[i]; break; }
+    if (el && T.kind === 'item') el = el.closest('.card') || el;
+    if (!el) {  // the environment's own page, if the store's design could not be drawn
+      var ls = document.querySelectorAll('a.product-link, button');
+      for (i = 0; i < ls.length; i++) if (norm(ls[i].textContent) === want) { el = ls[i].closest('.list-group-item') || ls[i]; break; }
+    }
   }
   if (T.kind === 'none') return;
   var cur = document.createElement('div'); cur.id = 'agent-cursor';
-  cur.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M4 2l15 10-6.5 1.2L16 21l-3 1.4-3.6-7.6L4 19z" fill="#0F2240" stroke="#FFD23F" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  cur.innerHTML = '<svg viewBox="0 0 24 24" width="34" height="34"><path d="M4 2l15 10-6.5 1.2L16 21l-3 1.4-3.6-7.6L4 19z" fill="#E8A030" stroke="#121210" stroke-width="1.8" stroke-linejoin="round"/></svg>';
   document.body.appendChild(cur);
   cur.style.left = (window.innerWidth/2 + window.scrollX) + 'px'; cur.style.top = (window.innerHeight*0.4 + window.scrollY) + 'px';
   if (!el) return;
-  el.scrollIntoView({block:'center'});
+  var box = el.getBoundingClientRect();  // scroll only this page, never the viewer around it
+  window.scrollTo(0, Math.max(0, window.scrollY + box.top - window.innerHeight / 2 + box.height / 2));
   setTimeout(function(){
     var r = el.getBoundingClientRect();
-    cur.style.left = (r.left + Math.min(r.width/2, 60) + window.scrollX) + 'px';
+    cur.style.left = (r.left + Math.min(r.width/2, 80) + window.scrollX) + 'px';
     cur.style.top = (r.top + r.height/2 + window.scrollY) + 'px';
     setTimeout(function(){
       el.classList.add('agent-target'); cur.classList.add('click');
@@ -341,153 +374,150 @@ a, button, input, label, form { pointer-events: none !important; }
   }, 120);
 })();
 <\/script>`;
-
 function showPage(html, target) {
   const inject = `<script>window.__T__=${JSON.stringify(target || { kind: 'none' }).replace(/</g, '\\u003c')};<\/script>` + PAGE_SCRIPT;
-  const doc = html.includes('</body>') ? html.replace('</body>', inject + '</body>') : html + inject;
-  $('#page').srcdoc = doc;
+  $('#page').srcdoc = html.includes('</body>') ? html.replace('</body>', inject + '</body>') : html + inject;
   $('#empty').hidden = true;
+  fit();
 }
 
-/* ---------- lineup ---------- */
-const goal = () => +$('#goal').value || 0;
-const recordedFor = (key, g) => { const r = (S.recorded[key] || {})[g]; return r === undefined ? null : r; };
-function buildLineup() {
-  const keys = ORDER.filter(k => S.agents.some(a => a.key === k)).concat(S.agents.map(a => a.key).filter(k => !ORDER.includes(k)));
-  S.order = keys;
-  const host = $('.lineup');
-  keys.forEach((key, i) => {
-    const info = INFO[key] || { name: S.agents.find(a => a.key === key).label, sub: '', fam: 'var(--blue)' };
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'ag'; b.dataset.key = key; b.setAttribute('role', 'radio');
-    b.style.setProperty('--fam', info.fam);
-    b.title = (S.agents.find(a => a.key === key) || {}).label || info.name;
-    b.title += ` (key ${i + 1})`;
-    b.innerHTML = `<span class="nm">${esc(info.name)}</span><span class="sc"></span><span class="sub">${esc(info.sub)}</span><span class="bar"><i></i></span>`;
-    b.addEventListener('click', () => selectAgent(key));
-    host.appendChild(b);
-  });
+/* ---------- requests ---------- */
+const budgetOf = t => { const m = /price lower than ([\d.]+) dollars/i.exec(t); return m ? +m[1] : null; };
+const band = v => v >= 100 ? 'exact' : v > 0 ? 'partial' : 'missed';
+const BAND = { exact: ['Exact', 'green'], partial: ['Partial', 'amber'], missed: ['Missed', 'red'] };
+function card(i) {
+  const text = S.goals[i], v = S.rec[i], b = budgetOf(text), bd = v === undefined ? null : band(v);
+  return `<button class="req" type="button" data-goal="${i}" ${S.current && S.current.goal === i ? 'aria-current="true"' : ''}>
+    <span class="req-id">REQ-${pad(i + 1, 4)}</span>
+    <div class="req-head"><p class="req-text">${esc(text.replace(/,? and price lower than [\d.]+ dollars/i, ''))}</p>
+      <div class="req-score">${v === undefined ? '–' : fmt1(v)}<small>RECORDED</small></div></div>
+    <div class="req-tags">${b ? `<span class="tag">Under $${b.toFixed(0)}</span>` : ''}${bd ? `<span class="tag ${BAND[bd][1]}">${BAND[bd][0]}</span>` : ''}</div>
+  </button>`;
 }
-function selectAgent(key) {
-  S.agent = key;
-  $$('.ag').forEach(b => b.setAttribute('aria-checked', String(b.dataset.key === key)));
-  updateNext();
+function mineCard(m, k) {
+  return `<button class="req" type="button" data-mine="${k}" ${S.current && S.current.request === m.text ? 'aria-current="true"' : ''}>
+    <span class="req-id">YOU-${pad(S.mine.length - k, 3)}</span>
+    <div class="req-head"><p class="req-text">${esc(m.text)}</p><div class="req-score">${m.steps ? m.steps : '–'}<small>STEPS</small></div></div>
+    <div class="req-tags"><span class="tag ink">No answer key</span>${m.bought ? `<span class="tag" title="${esc(m.bought)}">Bought</span>` : ''}</div>
+  </button>`;
 }
-function updateLineup() {
-  const g = goal();
-  $('#lineup-title').textContent = `Agents on request ${g + 1}`;
-  $$('.ag').forEach(b => {
-    const key = b.dataset.key, rec = recordedFor(key, g), live = (S.live[key] || {})[g];
-    const sc = b.querySelector('.sc');
-    const same = live !== undefined && rec !== null && Math.abs(live - rec) < 0.05;
-    const note = live === undefined ? 'recorded' : same ? '<em>live ✓</em>' : `<em>live ${fmt1(live)}</em>`;
-    sc.className = 'sc' + (rec === null ? ' none' : '');
-    sc.innerHTML = rec === null ? 'n/a' : `${fmt1(rec)}<small>${note}</small>`;
-    sc.title = live === undefined ? 'Score in the recorded test run'
-      : same ? 'Run live on this request: the same score as the recorded test run' : `Run live on this request and scored ${fmt1(live)}`;
-    b.querySelector('.bar i').style.setProperty('--w', (rec || 0) + '%');
-  });
-  humanLink();
+function renderQueue() {
+  const q = $('#queue');
+  if (S.mode === 'mine') {
+    q.innerHTML = S.mine.length ? S.mine.map(mineCard).join('')
+      : '<p class="none">No requests of your own yet. Type one in the box above and press Run request.</p>';
+  } else {
+    const idx = S.goals.map((_, i) => i).filter(i => S.filter === 'all' || (S.rec[i] !== undefined && band(S.rec[i]) === S.filter));
+    q.innerHTML = idx.length ? idx.map(card).join('') : '<p class="none">No requests in this group.</p>';
+  }
+  $('#tabs').hidden = S.mode === 'mine' || SOLO;
+  $('#n-mine').textContent = S.mine.length;
 }
-const nextKey = () => { const i = S.order.indexOf(S.agent); return S.order[(i + 1) % S.order.length]; };
-function updateNext() {
-  const k = nextKey(); if (!k) return;
-  $('#v-next').innerHTML = `Run the next agent: ${esc((INFO[k] || {}).name || k)} <kbd style="background:transparent;border-color:rgba(15,34,64,.35)">N</kbd>`;
+$('#queue').addEventListener('click', e => {
+  const b = e.target.closest('.req'); if (!b) return;
+  if (b.dataset.goal !== undefined) start({ goal: +b.dataset.goal });
+  else start({ request: S.mine[+b.dataset.mine].text });
+});
+$$('.nav[data-mode]').forEach(n => n.addEventListener('click', () => {
+  S.mode = n.dataset.mode; $$('.nav[data-mode]').forEach(x => x.setAttribute('aria-current', String(x === n))); renderQueue();
+}));
+$$('#tabs button').forEach(t => t.addEventListener('click', () => {
+  S.filter = t.dataset.f; $$('#tabs button').forEach(x => x.setAttribute('aria-selected', String(x === t))); renderQueue();
+}));
+function summary() {
+  const v = Object.values(S.rec); if (!v.length) return;
+  const n = v.length, mean = v.reduce((a, b) => a + b, 0) / n, c = { exact: 0, partial: 0, missed: 0 };
+  v.forEach(x => c[band(x)]++);
+  $('#sc-mean').innerHTML = `${fmt1(mean)}<small>/ 100</small>`;
+  const parts = [['exact', 'var(--green)', 'exact'], ['partial', 'var(--amber)', 'partial'], ['missed', 'var(--red)', 'missed']];
+  $('#sc-dist').innerHTML = parts.map(([k, col]) => `<i style="width:${c[k] / n * 100}%;background:${col}"></i>`).join('');
+  $('#sc-dist').setAttribute('aria-label', parts.map(([k]) => `${Math.round(c[k] / n * 100)}% ${k}`).join(', '));
+  $('#sc-key').innerHTML = parts.map(([k, col, l]) => `<span style="--c:${col}">${Math.round(c[k] / n * 100)}% ${l.toUpperCase()}</span>`).join('');
+  ['exact', 'partial', 'missed'].forEach(k => { $('#f-' + k).textContent = c[k]; });
+  $('#f-all').textContent = n;
+  $('#score-card').hidden = false;
 }
 
 /* ---------- setup ---------- */
 async function setup() {
   const r = await fetch('/api/setup').then(x => x.json()).catch(() => null);
-  if (!r) { $('#status').textContent = 'The demo server is not running.'; return setTimeout(setup, 2000); }
-  if (!S.agents.length) { S.agents = r.agents; buildLineup(); selectAgent(S.order[S.order.length - 1]); }
+  if (!r) { setStatus('The demo server is not running.'); return setTimeout(setup, 2000); }
   if (r.status !== 'ready') {
-    $('#status').textContent = r.status.split('\n')[0];
-    if (r.status.startsWith('The store failed')) { $('#empty').innerHTML = `<div class="in"><h2>The store failed to load</h2><pre>${esc(r.status)}</pre></div>`; return; }
+    setStatus(r.status.split('\n')[0]);
+    if (r.status.startsWith('The store failed')) { $('#empty').innerHTML = `<div class="card brut"><h2>The store failed to load</h2><pre>${esc(r.status)}</pre></div>`; return; }
     return setTimeout(setup, 1500);
   }
-  S.goals = r.goals; S.recorded = r.recorded;
-  $('#goal').innerHTML = S.goals.map((g, i) => `<option value="${i}">${i + 1}. ${esc(g.length > 110 ? g.slice(0, 108) + '…' : g)}</option>`).join('');
-  // Preset links: ?agent=value_shopper&goal=37&pace=1&start=1 (goal is the request number, 1 to 500)
-  const q = new URLSearchParams(location.search);
-  if (q.get('agent') && S.order.includes(q.get('agent'))) selectAgent(q.get('agent'));
-  if (q.get('goal')) $('#goal').value = Math.max(0, Math.min(S.goals.length - 1, (+q.get('goal') || 1) - 1));
-  if (q.get('pace')) { $('#pace').value = q.get('pace'); $('#pace-v').textContent = fmt1(+q.get('pace')) + ' s'; }
-  $('#goal').disabled = false; $('#start').disabled = false;
-  $('#status').textContent = 'Recorded test scores; press Start to run one live';
-  updateLineup();
-  if (q.get('start') === '1') return start();
-  // After a page refresh, pick up the run that is already going (or finished) on the server.
-  const cur = await fetch('/api/events?run=-1&since=0').then(x => x.json()).catch(() => null);
-  if (cur && cur.events.length) {
-    S.run = cur.run; S.since = cur.events.length; S.queue.push(...cur.events);
-    const first = cur.events[0];
-    if (first.type === 'start') { selectAgent(first.key); $('#goal').value = first.goal; updateLineup(); }
+  S.goals = r.goals; S.rec = r.recorded[AGENT] || {};
+  $('#n-tests').textContent = S.goals.length;
+  summary(); renderQueue(); setState('Ready', '');
+  setStatus('Ready');
+  if (Q.get('pace')) { $('#pace').value = Q.get('pace'); $('#pace-v').textContent = fmt1(+Q.get('pace')) + 's'; }
+  if (Q.get('start') === '1') {
+    if (Q.get('request')) return start({ request: Q.get('request') });
+    if (Q.get('goal')) return start({ goal: Math.max(0, Math.min(S.goals.length - 1, (+Q.get('goal') || 1) - 1)) });
   }
 }
-// Each visit gets a fresh store session pinned to the chosen request (fixed_<n> in web_agent_site/app.py).
-function humanLink() { $('#human').href = `http://127.0.0.1:3000/fixed_${goal()}_${Date.now().toString(36)}`; }
-$('#human').addEventListener('click', humanLink);
-$('#goal').addEventListener('change', updateLineup);
-function randomGoal() {
-  if (!S.goals.length) return;
-  let pool = S.goals.map((_, i) => i);
-  if ($('#contrast').checked) {
-    const spread = pool.filter(i => {
-      const v = S.order.map(k => recordedFor(k, i)).filter(x => x !== null);
-      return v.length > 1 && Math.max(...v) - Math.min(...v) >= 50;
-    });
-    if (spread.length) pool = spread;
-  }
-  $('#goal').value = pool[Math.floor(Math.random() * pool.length)];
-  updateLineup();
+function setStatus(text) {
+  const d = new Date(), day = d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+  $('#status-line').textContent = `${day} · ${d.toTimeString().slice(0, 8)} · ${text.toUpperCase()}`;
 }
-$('#random').addEventListener('click', randomGoal);
+function setState(text, tone) { const t = $('#t-state'); t.textContent = text; t.className = 'tag ' + tone; }
+
+$('#ask').addEventListener('submit', e => {
+  e.preventDefault();
+  const text = $('#ask-text').value.replace(/\s+/g, ' ').trim();
+  if (text.length < 3) { $('#ask-text').focus(); return; }
+  start({ request: text });
+});
 $('#pace').addEventListener('input', e => {
-  $('#pace-v').textContent = fmt1(+e.target.value) + ' s';
+  $('#pace-v').textContent = fmt1(+e.target.value) + 's';
   fetch('/api/speed', { method: 'POST', body: JSON.stringify({ delay: +e.target.value }) });
 });
+$('#stop').addEventListener('click', () => fetch('/api/stop', { method: 'POST', body: '{}' }));
 
-async function start() {
-  if ($('#start').disabled || !S.agent) return;
-  $('#start').disabled = true;
-  const r = await fetch('/api/start', { method: 'POST', body: JSON.stringify({ agent: S.agent, goal: goal(), delay: +$('#pace').value }) })
-    .then(x => x.json()).catch(() => ({ error: 'The demo server did not answer.' }));
-  $('#start').disabled = false;
-  if (r.error) { $('#status').textContent = r.error; return; }
+async function start(what) {
+  const body = { agent: AGENT, delay: +$('#pace').value, ...(what.request ? { request: what.request } : { goal: what.goal }) };
+  const r = await fetch('/api/start', { method: 'POST', body: JSON.stringify(body) }).then(x => x.json()).catch(() => ({ error: 'The demo server did not answer.' }));
+  if (r.error) { setStatus(r.error); return; }
+  if (what.request && !S.mine.some(m => m.text === what.request)) { S.mine.unshift({ text: what.request }); saveMine(); }
   S.run = r.run; S.since = 0; S.queue.length = 0;
-  resetEpisode();
+  reset();
 }
-function resetEpisode() {
+function reset() {
   S.steps = 0; S.lastItem = null;
-  $('#verdict').hidden = true;
+  $('#stamp').hidden = true;
   $('#log').innerHTML = ''; $('#log-n').textContent = '';
   $('#cells').innerHTML = '<i></i>'.repeat(100);
-  $('#rtag').textContent = 'reward 0'; $('#rtag').classList.remove('paid');
-  $('#t-label').textContent = 'Episode';
-  $('#t-note').textContent = 'One cell per step, up to the 100-step limit.';
-  $('#think').innerHTML = '<h3>What the agent decided</h3><p class="why">Starting…</p>';
+  const rw = $('#reward'); rw.textContent = 'REWARD 0'; rw.classList.remove('paid');
+  $('#t-label').textContent = 'Episode'; $('#t-note').textContent = 'One cell per step, up to the 100-step limit';
+  $('#think').innerHTML = '<p class="muted">Starting…</p>'; $('#d-stage').textContent = 'Starting'; $('#d-stage').className = 'tag';
+  $('#result').innerHTML = '<p class="muted">The store scores the purchase when it buys.</p>';
 }
-function setRunning(on) {
-  S.running = on;
-  $('#stop').hidden = !on; $('#start').hidden = on;
-  $('#live').classList.toggle('on', on);
-  $$('.ag').forEach(b => b.classList.toggle('running', on && b.dataset.key === S.agent));
-}
-$('#start').addEventListener('click', start);
-$('#stop').addEventListener('click', () => fetch('/api/stop', { method: 'POST', body: '{}' }));
-$('#v-close').addEventListener('click', () => { $('#verdict').hidden = true; });
-$('#v-next').addEventListener('click', () => { selectAgent(nextKey()); start(); });
 
 /* ---------- events ---------- */
+const kindOf = a => {
+  if (a.startsWith('search[')) return 'search';
+  const arg = a.slice(6, -1).toLowerCase();
+  if (arg.startsWith('item - ')) return 'item';
+  if (arg === 'buy now') return 'buy';
+  if (['back to search', '< prev', 'next >', 'description', 'features', 'reviews', 'attributes'].includes(arg)) return 'nav';
+  return 'option';
+};
+const KC = { search: 'var(--ink)', item: 'var(--green)', nav: 'var(--mint-2)', option: 'var(--amber)', buy: 'var(--red)' };
+const STAGE_TAG = { 'Reading the search results': ['Scan', 'ink'], 'Opening the most promising products': ['Inspect', 'amber'], 'Going back to buy the best one': ['Buy', 'green'] };
+
 function render(ev) {
   if (ev.type === 'start') {
-    S.startEv = ev;
-    resetEpisode();
-    if (S.order.includes(ev.key)) selectAgent(ev.key);
-    if (+$('#goal').value !== ev.goal) { $('#goal').value = ev.goal; updateLineup(); }
-    $('#req').innerHTML = `${esc(ev.instruction)}<small>Test request ${ev.goal + 1} of 500</small>`;
-    $('#status').textContent = `Running ${(INFO[ev.key] || {}).name || ev.agent} live`;
-    setRunning(true);
+    S.startEv = ev; reset();
+    S.current = ev.custom ? { request: ev.instruction } : { goal: ev.goal };
+    $('#t-req').textContent = ev.custom ? 'Your request' : `Request ${ev.goal + 1} of 500`;
+    $('#t-req').className = 'tag' + (ev.custom ? ' ink' : '');
+    $('#url').textContent = ev.instruction;
+    setState('Live', 'red live'); setStatus(`Shopping: ${ev.instruction}`);
+    $('#stop').hidden = false; S.running = true;
+    renderQueue();
+    const cur = $('.req[aria-current="true"]'), q = $('#queue');
+    if (cur && !SOLO) q.scrollTop = Math.max(0, cur.offsetTop - q.clientHeight / 2 + cur.offsetHeight / 2);
   } else if (ev.type === 'step') {
     const kind = kindOf(ev.action);
     if (kind === 'item') S.lastItem = ev.action.slice(13, -1);
@@ -497,123 +527,86 @@ function render(ev) {
     $('#stepno').textContent = `Step ${ev.n}`;
     const cell = $('#cells').children[ev.n - 1];
     if (cell) { cell.className = kind + ' new'; cell.title = `Step ${ev.n}: ${ev.action}`; }
-    $('#t-label').textContent = `Step ${ev.n} of 100`;
-    $('#t-note').textContent = kind === 'buy' ? 'Buying now: the reward arrives with this step.' : 'Reward so far: 0. WebShop pays only when the agent buys.';
+    $('#t-label').textContent = `Step ${pad(ev.n, 3)} / 100`;
+    $('#t-note').textContent = kind === 'buy' ? 'Buying now: the reward arrives with this step' : 'Reward so far: 0, paid only at checkout';
     $$('#log li').forEach(li => li.classList.remove('now'));
     const li = document.createElement('li');
-    li.className = 'now new'; li.style.setProperty('--c', KIND_COLOR[kind]);
-    li.title = ev.action;
-    li.innerHTML = `<span class="n">${ev.n}</span><span class="d"></span><span class="t">${esc(ev.action)}</span>`;
-    $('#log').appendChild(li); li.scrollIntoView({ block: 'nearest' });
-    $('#log-n').textContent = `${ev.n} so far`;
-    renderThink(ev);
+    li.className = 'now'; li.style.setProperty('--c', KC[kind]); li.title = ev.action;
+    li.innerHTML = `<span class="n">${pad(ev.n, 3)}</span><span class="d"></span><span class="t">${esc(ev.action)}</span>`;
+    $('#log').appendChild(li); const lp = $('#log').parentElement; lp.scrollTop = lp.scrollHeight;
+    $('#log-n').textContent = `${ev.n} steps`;
+    think(ev);
   } else if (ev.type === 'done') {
     showPage(ev.html, { kind: 'none' });
-    $('#url').textContent = ev.bought ? 'Purchase complete: the store scored it against the request' : 'Episode over: step limit reached';
+    $('#url').textContent = ev.bought ? 'Checkout complete' : 'Stopped at the 100-step limit';
     $('#stepno').textContent = 'Done';
     $$('#log li').forEach(li => li.classList.remove('now'));
-    $('#log-n').textContent = `${ev.steps} in total`;
-    $('#rtag').textContent = `reward ${fmt1(ev.score)}`; $('#rtag').classList.add('paid');
-    $('#t-label').textContent = `${ev.steps} steps`;
-    $('#t-note').textContent = ev.bought ? `The whole reward came at step ${ev.steps}; the steps before it earned 0.` : 'No purchase within 100 steps, so the reward is 0.';
-    const key = S.startEv ? S.startEv.key : S.agent, g = S.startEv ? S.startEv.goal : goal();
-    (S.live[key] = S.live[key] || {})[g] = ev.score; saveLive();
-    updateLineup();
-    showVerdict(ev, key, g);
-    $('#status').textContent = `Finished: ${fmt1(ev.score)} points`;
-    setRunning(false);
+    finish(ev);
   } else if (ev.type === 'error') {
     $('#empty').hidden = false;
-    $('#empty').innerHTML = `<div class="in"><h2>The run stopped with an error</h2><pre>${esc(ev.message)}</pre></div>`;
-    $('#status').textContent = 'The run stopped with an error';
-    setRunning(false);
+    $('#empty').innerHTML = `<div class="card brut"><h2>The run stopped with an error</h2><pre>${esc(ev.message)}</pre></div>`;
+    setState('Error', 'red'); setStatus('The run stopped with an error'); stopped();
   }
 }
-function showVerdict(ev, key, g) {
-  const p = ev.parts, pct = v => Math.round(v * 100) + '%';
-  const exact = ev.score >= 100;
-  const kind = !ev.bought ? 'No purchase' : exact ? 'Exact match' : ev.score >= 50 ? 'Partial match' : ev.score > 0 ? 'Poor match' : 'Wrong product';
-  const name = (INFO[key] || {}).name || key;
-  $('#v-lab').textContent = `${name}: reward from the store`;
-  $('#v-kind').innerHTML = `${kind}<span>${ev.bought ? `Bought at step ${ev.steps}` : `Stopped at the ${ev.steps}-step limit`}</span>`;
-  $('#v-bought').innerHTML = ev.bought && S.lastItem ? `It bought<b>${esc(S.lastItem)}</b>` : ev.bought ? '' : 'It never pressed Buy, so the episode scores 0.';
-  const row = (label, v, text) => `<span>${label}</span><i class="${v >= 1 ? 'full' : ''}" style="--w:${Math.max(0, Math.min(1, v)) * 100}%"></i><b>${text}</b>`;
-  $('#v-parts').innerHTML = ev.bought
-    ? row('Product type', p.r_type, p.r_type >= 1 ? 'same' : p.r_type > 0 ? `× ${p.r_type}` : 'wrong') +
-      row('Attributes', p.r_att, pct(p.r_att)) + row('Options', p.r_option, pct(p.r_option)) +
-      row('Price', p.r_price, p.r_price >= 1 ? 'in budget' : 'over budget')
-    : '';
-  $('#v-parts').hidden = !ev.bought;
-  const rec = recordedFor(key, g);
-  $('#v-compare').innerHTML = rec === null ? 'No recorded test score for this agent on this request.'
-    : Math.abs(rec - ev.score) < 0.05 ? `The recorded test run also scored <b>${fmt1(rec)}</b> here: the live run reproduces it.`
-    : `The recorded test run scored <b>${fmt1(rec)}</b> here; this live run scored <b>${fmt1(ev.score)}</b>.`;
-  updateNext();
-  const v = $('#verdict'); v.hidden = false; v.classList.remove('go'); void v.offsetWidth; v.classList.add('go');
-  countUp($('#v-num'), ev.score);
+function stopped() { S.running = false; $('#stop').hidden = true; }
+function think(ev) {
+  const t = ev.think || {};
+  if (t.kind !== 'value') { $('#think').innerHTML = `<p class="muted">${esc(t.why || '')}</p>`; return; }
+  const [label, tone] = STAGE_TAG[t.stage] || [t.stage, ''];
+  $('#d-stage').textContent = label; $('#d-stage').className = 'tag ' + tone;
+  const list = t.scored.length ? t.scored : t.shortlist, max = Math.max(1, ...list.map(x => x[1]));
+  $('#think').innerHTML = `<div class="kv"><span>SEEN <b>${t.seen}</b></span>${t.left ? `<span>TO OPEN <b>${t.left}</b></span>` : ''}<span>${t.scored.length ? 'PREDICTED SCORE IF BOUGHT' : list.length ? 'SHORTLIST FROM TITLES' : ''}</span></div>
+    ${t.opening ? `<p class="reading">Reading: ${esc(t.opening)}</p>` : ''}
+    <ul class="bars">${list.slice(0, 6).map(([title, v]) => `<li class="${title === t.best ? 'best' : ''}"><span title="${esc(title)}">${esc(title)}</span><b>${fmt1(v)}</b><i style="--w:${Math.max(2, Math.min(100, v / max * 100))}%"></i></li>`).join('')}</ul>`;
 }
-function countUp(el, to) {
-  const t0 = performance.now(), dur = reduced ? 0 : 900, id = (countUp.id = (countUp.id || 0) + 1);
-  const show = v => { el.innerHTML = `${fmt1(v)}<small>/ 100</small>`; };
-  const tick = () => {
-    if (id !== countUp.id) return;
-    const k = dur ? Math.max(0, Math.min(1, (performance.now() - t0) / dur)) : 1;
-    show(to * (1 - Math.pow(1 - k, 3)));
-    if (k < 1) requestAnimationFrame(tick); else countUp.id++;
-  };
-  tick();
-  // Animation frames pause in background tabs; the final number must still show.
-  setTimeout(() => { if (id === countUp.id) { countUp.id++; show(to); } }, dur + 60);
-}
-function renderThink(ev) {
-  const t = ev.think, act = ev.action;
-  const now = `<div class="action-now"><b>${esc(act.split('[')[0])}</b>[${esc(act.slice(act.indexOf('[') + 1))}</div>`;
-  let h;
-  if (t.kind === 'policy') {
-    const v = Math.max(0, Math.min(10, t.value));
-    h = `<h3>Policy π(a | s) <em>top ${t.probs.length} of ${t.n} actions</em></h3>${now}
-      <ul class="probs">${t.probs.map(([a, p]) => `<li class="${a === act ? 'pick' : ''}"><span title="${esc(a)}">${esc(a)}</span><b>${(p * 100).toFixed(1)}%</b><i style="--w:${Math.max(1, p * 100)}%"></i></li>`).join('')}</ul>
-      <div class="critic"><span>Critic V(s)</span><i style="--w:${v * 10}%"></i><b>${t.value}</b>
-        <p>Expected reward still to come, on the 0 to 10 training scale.</p></div>`;
-  } else if (t.kind === 'value') {
-    h = `<h3>Value shopper <em>${esc(t.stage)}</em></h3>${now}<div class="kv"><span>Products seen <b>${t.seen}</b></span>${t.left ? `<span>Left to open <b>${t.left}</b></span>` : ''}</div>`;
-    if (t.opening) h += `<p class="why">Reading: ${esc(t.opening)}</p>`;
-    const list = t.scored.length ? t.scored : t.shortlist;
-    if (list.length) {
-      const max = Math.max(...list.map(x => x[1]), 1);
-      h += `<p class="why" style="margin-bottom:0">${t.scored.length ? 'Predicted score if bought (value model)' : 'Shortlist from titles (title model)'}</p>
-        <ul class="probs">${list.map(([title, v]) => `<li class="${title === t.best ? 'pick' : ''}"><span title="${esc(title)}">${esc(title)}</span><b>${fmt1(v)}</b><i style="--w:${Math.max(1, Math.min(100, v / max * 100))}%"></i></li>`).join('')}</ul>`;
-    }
-  } else {
-    h = `<h3>${t.kind === 'rule' ? 'Fixed rule' : 'No choice to make'}</h3>${now}<p class="why">${esc(t.why || '')}</p>`;
+function finish(ev) {
+  stopped();
+  const custom = !!ev.custom, s = ev.score;
+  const rw = $('#reward'); rw.textContent = custom ? 'NO ANSWER KEY' : `REWARD ${fmt1(s)}`; rw.classList.toggle('paid', !custom && s > 0);
+  $('#t-label').textContent = `${ev.steps} steps`;
+  $('#t-note').textContent = custom ? 'Your own request: there is no correct product to score against'
+    : ev.bought ? `The whole reward came at step ${ev.steps}; every step before it earned 0` : 'No purchase within 100 steps, so the reward is 0';
+  let stamp, tone, sub;
+  if (!ev.bought) { stamp = 'No purchase'; tone = 'var(--red)'; sub = 'Step limit reached'; }
+  else if (custom) { stamp = 'Bought'; tone = 'var(--ink)'; sub = `At step ${ev.steps}`; }
+  else if (s >= 100) { stamp = 'Exact match'; tone = 'var(--green)'; sub = `${fmt1(s)} / 100`; }
+  else if (s > 0) { stamp = 'Partial'; tone = 'var(--amber)'; sub = `${fmt1(s)} / 100`; }
+  else { stamp = 'Missed'; tone = 'var(--red)'; sub = '0 / 100'; }
+  const st = $('#stamp'); st.style.setProperty('--c', tone); $('#stamp-b').textContent = stamp; $('#stamp-s').textContent = sub;
+  st.hidden = false; st.classList.remove('slam'); void st.offsetWidth; st.classList.add('slam');
+  setState('Done', custom ? 'ink' : s >= 100 ? 'green' : s > 0 ? 'amber' : 'red');
+  setStatus(custom ? 'Bought, with no answer key' : `Finished: ${fmt1(s)} points`);
+  const bought = S.lastItem ? `<p class="muted" style="margin-bottom:8px">Bought <b>${esc(S.lastItem)}</b></p>` : '';
+  if (custom) {
+    const m = S.mine.find(x => x.text === S.startEv.instruction);
+    if (m) { m.steps = ev.steps; m.bought = S.lastItem || ''; saveMine(); renderQueue(); }
+    $('#result').innerHTML = `${bought}<p class="muted">A typed request has no correct product, so the store cannot score it.</p>`;
+    return;
   }
-  $('#think').innerHTML = h;
+  const p = ev.parts, pct = v => Math.round(v * 100) + '%', rec = S.startEv && S.startEv.recorded;
+  const row = (label, ok, text) => `<li><span>${label}</span><b class="${ok}">${text}</b></li>`;
+  $('#result').innerHTML = bought + (ev.bought ? `<ul class="checks">
+      ${row('Product type', p.r_type >= 1 ? 'ok' : p.r_type >= .5 ? 'mid' : 'bad', p.r_type >= 1 ? 'PASS' : p.r_type > 0 ? '× ' + p.r_type : 'FAIL')}
+      ${row('Attributes', p.r_att >= 1 ? 'ok' : p.r_att > 0 ? 'mid' : 'bad', pct(p.r_att))}
+      ${row('Options', p.r_option >= 1 ? 'ok' : p.r_option > 0 ? 'mid' : 'bad', pct(p.r_option))}
+      ${row('Price', p.r_price >= 1 ? 'ok' : 'bad', p.r_price >= 1 ? 'IN BUDGET' : 'OVER')}
+      ${rec === null || rec === undefined ? '' : row('Recorded run', Math.abs(rec - s) < .05 ? 'ok' : 'mid', Math.abs(rec - s) < .05 ? fmt1(rec) + ' ✓' : fmt1(rec))}
+    </ul>` : '<p class="muted">It never pressed Buy, so the episode scores 0.</p>');
 }
 
-/* ---------- keyboard, for presenting ---------- */
 document.addEventListener('keydown', e => {
-  if (e.ctrlKey || e.metaKey || e.altKey || /^(SELECT|INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
-  const k = e.key.toLowerCase();
-  if (/^[1-9]$/.test(k) && S.order && S.order[+k - 1]) { selectAgent(S.order[+k - 1]); }
-  else if (k === 'r') randomGoal();
-  else if (k === ' ' && ((e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') || e.target.classList.contains('ag'))) {
-    e.preventDefault(); if (!S.running) start();
-  }
-  else if (k === 'n' && !S.running) { selectAgent(nextKey()); start(); }
-  else if (k === 's' && S.running) $('#stop').click();
-  else if (k === 'escape') $('#verdict').hidden = true;
-  else return;
+  if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) { e.preventDefault(); $('#ask-text').focus(); }
+  else if (e.key === 'Escape') $('#stamp').hidden = true;
 });
 
-/* Events are shown at least 450 ms apart, so a fast pace still reads as motion. */
+/* Follows whichever run is current, so a second tab shows the same run. Steps are shown at least 450 ms apart. */
 async function poll() {
   try {
-    if (S.run) {
-      const r = await fetch(`/api/events?run=${S.run}&since=${S.since}`).then(x => x.json());
-      if (r.run === S.run) { S.queue.push(...r.events); S.since += r.events.length; }
-    }
-  } catch (e) { /* server restarting */ }
-  setTimeout(poll, 250);
+    const r = await fetch(`/api/events?run=${S.run || -1}&since=${S.since}`).then(x => x.json());
+    if (r.run !== S.run) { S.run = r.run; S.since = r.events.length; S.queue = r.events.slice(); }
+    else { S.queue.push(...r.events); S.since += r.events.length; }
+  } catch (e) { /* the server is restarting */ }
+  setTimeout(poll, 300);
 }
 function drain() {
   const ev = S.queue.shift();
@@ -621,7 +614,8 @@ function drain() {
   setTimeout(drain, ev && ev.type === 'step' ? Math.min(450, +$('#pace').value * 1000) : 60);
 }
 $('#cells').innerHTML = '<i></i>'.repeat(100);
-setup(); poll(); drain();
+setInterval(() => { if (!S.running) return; const t = $('#status-line').textContent.split(' · '); if (t.length > 2) { t[1] = new Date().toTimeString().slice(0, 8); $('#status-line').textContent = t.join(' · '); } }, 1000);
+fit(); setup(); poll(); drain();
 })();
 </script>
 </body>
