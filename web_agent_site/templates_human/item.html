@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
 {% from '_product.html' import product_image, stars, tabs %}
-{% block title %}{{ product_info.Title }} · WebShop{% endblock %}
+{% block title %}{{ product_info.Title }} · Checkout store{% endblock %}
 {% block body_class %}page-item{% endblock %}
 {% block main %}
 <div class="bar">
   <form method="post" action="{{ url_for('index', session_id=session_id) }}">
-    <button type="submit" class="btn-back" data-act="back to search">&larr; New search</button>
+    <button type="submit" class="btn-back" data-act="back to search"><i class="ti ti-arrow-left" aria-hidden="true"></i>New search</button>
   </form>
   <form method="post" action="{{ url_for('search_results', session_id=session_id, keywords=keywords, page=page) }}">
-    <button type="submit" class="btn-quiet" data-act="&lt; prev">Back to the results</button>
+    <button type="submit" class="btn-quiet" data-act="&lt; prev"><i class="ti ti-layout-grid" aria-hidden="true"></i>Back to the results</button>
   </form>
 </div>
 
 <article class="product">
-  <div class="gallery">{{ product_image(product_info, options, 'product-image') }}</div>
+  <div class="gallery">{{ product_image(product_info, options, 'product-image', asin) }}</div>
 
   <div class="info">
     <h1 class="p-title">{{ product_info.Title }}</h1>
@@ -47,7 +47,7 @@
     {% endif %}
 
     <form class="buy" method="post" action="{{ url_for('done', session_id=session_id, asin=asin, options=options) }}">
-      <button type="submit" class="btn-buy" data-act="buy now">Buy now</button>
+      <button type="submit" class="btn-buy" data-act="buy now"><i class="ti ti-shopping-cart" aria-hidden="true"></i>Buy now</button>
       <p>Ends the task. The store scores this product{% if product_info.options %} with the options shown above{% endif %}.</p>
     </form>
 

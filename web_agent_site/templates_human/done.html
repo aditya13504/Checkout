@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Your score {{ score }} · WebShop{% endblock %}
+{% block title %}Your score {{ score }} · Checkout store{% endblock %}
 {% block body_class %}page-done{% endblock %}
 {% block main %}
 {% set n_att = goal_attributes | length %}
@@ -12,27 +12,31 @@
 {% elif r_type == 0 %}{% set verdict, tone = 'Wrong kind of product', 'bad' %}
 {% elif score >= 50 %}{% set verdict, tone = 'Partial match', 'mid' %}
 {% else %}{% set verdict, tone = 'Poor match', 'bad' %}{% endif %}
+{% set react = 'package' if (custom and not match) else {'good': 'trophy', 'mid': 'thinking', 'bad': 'grimacing'}[tone] %}
 
 <section class="result">
   <div class="score-tag tone-{{ tone }}">
+    <img class="react" src="{{ url_for('static', filename='characters/' ~ react ~ '.png') }}" alt="">
     {% if custom and match %}
-    <span class="st-lab">Estimated match</span>
-    <div class="st-num"><span id="score" data-to="{{ match.score }}">{{ '%.1f' | format(match.score) }}</span><small>/ 100</small></div>
+    <span class="lab">Estimated match</span>
+    <div class="st-stamp"><div class="st-num"><span id="score" data-to="{{ match.score }}">{{ '%.1f' | format(match.score) }}</span><small>/ 100</small></div>
+      <p class="st-verdict">{{ verdict }}</p></div>
     {% elif custom %}
-    <span class="st-lab">No answer key</span>
+    <span class="lab">No answer key</span>
     <p class="st-note">A typed request has no correct product to score against, so this purchase has no score.</p>
+    <div class="st-stamp"><p class="st-verdict">{{ verdict }}</p></div>
     {% else %}
-    <span class="st-lab">Your reward</span>
-    <div class="st-num"><span id="score" data-to="{{ score }}">{{ '%.1f' | format(score) }}</span><small>/ 100</small></div>
+    <span class="lab">{{ "The value shopper's reward" if viewer == 'agent' else 'Your reward' }}</span>
+    <div class="st-stamp"><div class="st-num"><span id="score" data-to="{{ score }}">{{ '%.1f' | format(score) }}</span><small>/ 100</small></div>
+      <p class="st-verdict">{{ verdict }}</p></div>
     {% endif %}
-    <p class="st-verdict">{{ verdict }}</p>
     <p class="st-steps">Bought at step {{ steps }}</p>
   </div>
 
   <div class="bought">
-    <h1>You bought</h1>
+    <h1>{{ 'It bought' if viewer == 'agent' else 'You bought' }}</h1>
     <div class="mini">
-      <span class="mini-img"><img src="{{ product.MainImage }}" alt=""
+      <span class="mini-img"><img src="{{ product.MainImage }}" alt=""{% if asin %} style="view-transition-name: p-{{ asin | lower }}"{% endif %}
         onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/no-image-available.png') }}'"></span>
       <div>
         <p class="mini-title">{{ product.Title }}</p>
@@ -96,6 +100,7 @@
   <p class="note">Its score from the recorded test run on this same request. Watch it shop the request live below.</p>
   <ol class="vs-list">
     <li class="vs-you">
+      <img class="vs-who" src="{{ url_for('static', filename='characters/child.png') }}" alt="">
       <span class="vs-name">You<small>A person</small></span>
       <span class="vs-bar"><i style="--w:{{ score }}%"></i></span>
       <span class="vs-score">{{ '%.1f' | format(score) }}</span>
@@ -103,6 +108,7 @@
     </li>
     {% for a in shown %}
     <li class="vs-{{ a.key }}">
+      <img class="vs-who" src="{{ url_for('static', filename='characters/robot.png') }}" alt="">
       <span class="vs-name">{{ a.name }}<small>{{ a.sub }}</small></span>
       <span class="vs-bar"><i style="--w:{{ a.score }}%"></i></span>
       <span class="vs-score">{{ '%.1f' | format(a.score) }}</span>
@@ -114,9 +120,9 @@
 {% endif %}
 
 <div class="actions">
-  <a class="btn-go" href="{{ retry_url }}">Try this request again</a>
-  <a class="btn-quiet" href="{{ url_for('new_session') }}">Shop another request</a>
-  {% if shown %}<a class="btn-quiet" href="{{ demo_url }}&amp;start=1">Watch the value shopper shop it</a>{% endif %}
+  <a class="btn-go" href="{{ retry_url }}"><i class="ti ti-refresh" aria-hidden="true"></i>Try this request again</a>
+  <a class="btn-quiet" href="{{ url_for('new_session') }}"><i class="ti ti-arrows-shuffle" aria-hidden="true"></i>Shop another request</a>
+  {% if shown %}<a class="btn-quiet" href="{{ demo_url }}&amp;start=1"><i class="ti ti-player-play" aria-hidden="true"></i>Watch the value shopper shop it</a>{% endif %}
 </div>
 {% endblock %}
 {% block scripts %}

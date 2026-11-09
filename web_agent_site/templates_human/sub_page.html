@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
 {% from '_product.html' import product_image, stars, tabs %}
-{% block title %}{{ sub_page }} · {{ product_info.Title }} · WebShop{% endblock %}
+{% block title %}{{ sub_page }} · {{ product_info.Title }} · Checkout store{% endblock %}
 {% block body_class %}page-sub{% endblock %}
 {% block main %}
 <div class="bar">
   <form method="post" action="{{ url_for('index', session_id=session_id) }}">
-    <button type="submit" class="btn-back" data-act="back to search">&larr; New search</button>
+    <button type="submit" class="btn-back" data-act="back to search"><i class="ti ti-arrow-left" aria-hidden="true"></i>New search</button>
   </form>
   <form method="post" action="{{ url_for('item_page', session_id=session_id, asin=asin, keywords=keywords, page=page, options=options) }}">
-    <button type="submit" class="btn-quiet" data-act="&lt; prev">Back to the product</button>
+    <button type="submit" class="btn-quiet" data-act="&lt; prev"><i class="ti ti-arrow-back-up" aria-hidden="true"></i>Back to the product</button>
   </form>
 </div>
 
 <div class="mini">
-  <span class="mini-img">{{ product_image(product_info, options) }}</span>
+  <span class="mini-img">{{ product_image(product_info, options, '', asin) }}</span>
   <div>
     <p class="mini-title">{{ product_info.Title }}</p>
     <p class="mini-meta"><span class="p-price">{{ product_info.Price }}</span>

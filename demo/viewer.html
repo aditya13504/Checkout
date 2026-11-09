@@ -115,7 +115,23 @@ kbd { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); p
 .ctl i { font-size: 15px; }
 .ctl.stop { background: var(--red); color: #fff; }
 .ctl input[type=range] { width: 70px; accent-color: var(--ink); margin: 0; }
-.screen { position: relative; overflow: hidden; background: #F2F5F9; min-height: 0; }
+.screen { position: relative; overflow: hidden; background: var(--mint); min-height: 0; }
+/* The two characters: the robot is the value shopper, the child is you (as on the store's pages). */
+.avatar { width: 40px; height: 40px; flex: none; padding: 3px; border: 2px solid var(--ink); background: var(--paper); box-shadow: 3px 3px 0 var(--ink); }
+.shopping .title-row .avatar { animation: hop .9s cubic-bezier(.3, 1.6, .4, 1) infinite alternate; background: var(--amber-soft); }
+@keyframes hop { to { transform: translateY(-4px) rotate(-6deg); } }
+.nav img { width: 22px; height: 22px; }
+.empty .card { position: relative; }
+.empty .cast { display: flex; align-items: flex-end; gap: 6px; margin: -64px 0 8px; }
+.empty .cast img { width: 84px; filter: drop-shadow(3px 3px 0 rgba(18, 18, 16, .9)); animation: drop .7s cubic-bezier(.2, 1.4, .4, 1) both, bob 3s ease-in-out .7s infinite alternate; }
+.empty .cast img + img { width: 92px; animation-delay: .15s, .85s; animation-duration: .7s, 2.4s; }
+.empty .cast img:last-child { width: 58px; animation-delay: .3s, 1s; }
+@keyframes drop { from { transform: translateY(-40px) scale(.8); opacity: 0; } 50% { opacity: 1; } }
+@keyframes bob { to { transform: translateY(-6px) rotate(-2deg); } }
+.stamp-who { position: absolute; width: 74px; right: -40px; top: -44px; transform: rotate(8deg); filter: drop-shadow(3px 3px 0 rgba(18, 18, 16, .9));
+  animation: who-pop .5s cubic-bezier(.2, 1.4, .4, 1) .35s both; }
+@keyframes who-pop { from { transform: scale(0) rotate(-40deg); } }
+.solo .title-row .avatar { width: 32px; height: 32px; }
 .screen iframe { position: absolute; left: 0; top: 0; border: 0; background: #fff; transform-origin: 0 0; }
 .empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: var(--mint);
   background-image: radial-gradient(circle, rgba(18,18,16,.22) 1.4px, transparent 1.5px); background-size: 20px 20px; overflow: auto; }
@@ -233,7 +249,7 @@ kbd { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); p
     <button class="nav press" type="button" data-mode="mine" title="Your requests">
       <span><i class="ti ti-message-2" aria-hidden="true"></i><em>Your requests</em></span><span class="n" id="n-mine">0</span></button>
     <a class="nav store press" id="try" href="http://127.0.0.1:3000/new" target="_blank" rel="noopener" title="Shop a request yourself">
-      <span><i class="ti ti-building-store" aria-hidden="true"></i><em>Try it yourself</em></span><i class="ti ti-arrow-up-right" aria-hidden="true"></i></a>
+      <span><img src="/static/characters/child.png" alt=""><em>Try it yourself</em></span><i class="ti ti-arrow-up-right" aria-hidden="true"></i></a>
     <div class="score-card brut" id="score-card" hidden>
       <span class="lab">Test score</span>
       <div class="big" id="sc-mean">0<small>/ 100</small></div>
@@ -245,7 +261,7 @@ kbd { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); p
   <div class="main">
     <header class="top">
       <div>
-        <div class="title-row"><h1>Value shopper</h1><span class="tag" id="t-req">No request</span><span class="tag" id="t-state">Loading</span></div>
+        <div class="title-row"><img class="avatar" src="/static/characters/robot.png" alt=""><h1>Value shopper</h1><span class="tag" id="t-req">No request</span><span class="tag" id="t-state">Loading</span></div>
         <p class="status-line" id="status-line">Loading the store: 1,181,430 products</p>
       </div>
       <form class="ask" id="ask" autocomplete="off">
@@ -279,6 +295,7 @@ kbd { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); p
           <div class="screen" id="screen">
             <iframe id="page" title="The store, as the value shopper sees it" sandbox="allow-scripts allow-same-origin"></iframe>
             <div class="empty" id="empty"><div class="card brut">
+              <div class="cast" aria-hidden="true"><img src="/static/characters/robot.png" alt=""><img src="/static/characters/cart.png" alt=""><img src="/static/characters/bags.png" alt=""></div>
               <h2>Watch the value shopper shop.</h2>
               <ol>
                 <li>Pick a test request on the left, or type your own request above and press Run request.</li>
@@ -286,7 +303,7 @@ kbd { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); p
                 <li>The store scores test requests out of 100. Your own requests have no answer key, so they are not scored.</li>
               </ol>
             </div></div>
-            <div class="stamp" id="stamp" hidden><b id="stamp-b"></b><span id="stamp-s"></span></div>
+            <div class="stamp" id="stamp" hidden><img class="stamp-who" id="stamp-who" alt=""><b id="stamp-b"></b><span id="stamp-s"></span></div>
           </div>
         </div>
 
@@ -462,7 +479,10 @@ function setStatus(text) {
   const d = new Date(), day = d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
   $('#status-line').textContent = `${day} · ${d.toTimeString().slice(0, 8)} · ${text.toUpperCase()}`;
 }
-function setState(text, tone) { const t = $('#t-state'); t.textContent = text; t.className = 'tag ' + tone; }
+function setState(text, tone) {
+  const t = $('#t-state'); t.textContent = text; t.className = 'tag ' + tone;
+  document.body.classList.toggle('shopping', text === 'Live');  // the robot hops while it shops
+}
 
 $('#ask').addEventListener('submit', e => {
   e.preventDefault();
@@ -581,6 +601,8 @@ function finish(ev) {
   else if (s > 0) { stamp = 'Partial'; tone = 'var(--amber)'; sub = `${fmt1(s)} / 100`; }
   else { stamp = 'Missed'; tone = 'var(--red)'; sub = '0 / 100'; }
   const st = $('#stamp'); st.style.setProperty('--c', tone); $('#stamp-b').textContent = stamp; $('#stamp-s').textContent = sub;
+  const who = { 'var(--green)': 'trophy', 'var(--amber)': 'thinking', 'var(--red)': 'grimacing', 'var(--ink)': 'package' }[tone];
+  $('#stamp-who').src = `/static/characters/${who}.png`;
   st.hidden = false; st.classList.remove('slam'); void st.offsetWidth; st.classList.add('slam');
   setState('Done', custom ? (s >= 75 ? 'green' : s >= 40 ? 'amber' : 'red') : s >= 100 ? 'green' : s > 0 ? 'amber' : 'red');
   setStatus(custom ? `Bought: estimated match ${fmt1(s)} out of 100` : `Finished: ${fmt1(s)} points`);

@@ -1,21 +1,33 @@
 {% extends 'base.html' %}
-{% block title %}Search · WebShop{% endblock %}
+{% block title %}Search · Checkout store{% endblock %}
 {% block body_class %}page-search{% endblock %}
 {% block main %}
+{% set ch = url_for('static', filename='characters/') %}
 <section class="hero">
-  <h1>Shop it the way the agent does.</h1>
-  <p class="lede">Find the product the request describes{% if catalogue_size %} among {{ '{:,}'.format(catalogue_size) }} real listings{% endif %}, choose its options and buy it. Your purchase is scored out of 100, like every agent's.</p>
-  <form class="search" method="post" action="{{ url_for('index', session_id=session_id) }}" role="search">
-    <label class="sr" for="search_input">Search the store</label>
-    <svg class="search-ic" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    <input id="search_input" name="search_query" type="search" placeholder="Try words from the request" required autofocus autocomplete="off" spellcheck="false">
-    <button type="submit" class="btn-go">Search</button>
-  </form>
-  <ol class="how">
-    <li><b>Search</b><span>Words from the request work best. Results come 10 to a page, 50 at most.</span></li>
-    <li><b>Open a product</b><span>Read its price and details. Description, features and reviews are a click away.</span></li>
-    <li><b>Choose options</b><span>Size, colour or pack, when the request names one. They count toward the score.</span></li>
-    <li><b>Buy</b><span>That ends the task. The store checks the product type, attributes, options and price.</span></li>
-  </ol>
+  <div>
+    <h1>Shop it the way the agent does.</h1>
+    <p class="lede">Find the product the request describes{% if catalogue_size %} among {{ '{:,}'.format(catalogue_size) }} real listings{% endif %}, choose its options and buy it. Your purchase is scored out of 100, like every agent's.</p>
+    <form class="search" method="post" action="{{ url_for('index', session_id=session_id) }}" role="search">
+      <label class="search-box"><i class="ti ti-search" aria-hidden="true"></i><span class="sr">Search the store</span>
+        <input id="search_input" name="search_query" type="search" placeholder="Try words from the request" required autofocus autocomplete="off" spellcheck="false"></label>
+      <button type="submit" class="btn-go">Search</button>
+    </form>
+  </div>
+  <figure class="scene" aria-hidden="true">
+    <img class="sc-kid" src="{{ ch }}child.png" alt="">
+    <img class="sc-bot" src="{{ ch }}robot.png" alt="">
+    <img class="sc-cart" src="{{ ch }}cart.png" alt="">
+    <img class="sc-bags" src="{{ ch }}bags.png" alt="">
+    <img class="sc-spark" src="{{ ch }}sparkles.png" alt="">
+    <span class="tag soft sc-tag sc-tag-kid">You</span>
+    <span class="tag ink sc-tag sc-tag-bot">Value shopper</span>
+    <span class="sc-vs">VS</span>
+  </figure>
 </section>
+<ol class="how">
+  <li><b>Search</b><span>Words from the request work best. Results come 10 to a page, 50 at most.</span></li>
+  <li><b>Open a product</b><span>Read its price and details. Description, features and reviews are a click away.</span></li>
+  <li><b>Choose options</b><span>Size, colour or pack, when the request names one. They count toward the score.</span></li>
+  <li><b>Buy</b><span>That ends the task. The store checks the product type, attributes, options and price.</span></li>
+</ol>
 {% endblock %}
