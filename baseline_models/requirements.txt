@@ -1,2 +1,0 @@
-datasets==2.19.2
-accelerate==0.30.1

@@ -212,7 +212,7 @@ This project builds on the open-source WebShop code by Princeton NLP (MIT Licens
 - Pinned Werkzeug (`Flask` crashed on import) and removed two unrelated PyPI packages from the requirements.
 - Made the spaCy model consistent with the setup scripts and tests.
 - Moved the data downloads off the Google Drive links, which no longer work, to a Hugging Face mirror.
-- Fixed `generate_search.py`'s import, the `--network rnn` path (four separate faults) and the random-weights path, and removed hard-coded `.cuda()` calls.
+- Fixed the `--network rnn` path (four separate faults) and the random-weights path, and removed hard-coded `.cuda()` calls.
 
 **Changed results or validity**
 
@@ -242,4 +242,4 @@ This project builds on the open-source WebShop code by Princeton NLP (MIT Licens
 
 **Left out**
 
-- The original repository's sim-to-real `transfer/` code, its Lucene indexing scripts, attribute annotation scripts and Apple-silicon setup files, which this project does not use.
+- Parts of the original repository that this project does not use: the sim-to-real `transfer/` code, the browser-driven environment and its example scripts, the training scripts for the search-query model (its predicted queries ship with the data), the Lucene indexing and attribute annotation scripts, and the Apple-silicon setup files.
