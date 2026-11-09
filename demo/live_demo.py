@@ -56,6 +56,138 @@ AGENTS = {
 }
 CUSTOM_GOAL = 999999  # the session number of requests typed by people; they have no answer key
 BUDGET = re.compile(r'price lower than ([\d.]+) dollars')
+SEARCH_PRICE_TEXT = ', and price lower than'  # as in baseline_models/env.py
+# Typed requests say their budget in many ways ("under $70", "max 70 dollars", "$70 or less").
+_PRICE_WORDS = (r"(?:under|below|less than|lower than|cheaper than|up to|at most|no more than|not more than|not over|"
+                r"max(?:imum)?(?: of)?|within|budget(?: of| is)?|for less than|<=?)")
+PRICE_BEFORE = re.compile(rf",?\s*(?:and\s+|with\s+|that\s+)?(?:a\s+)?(?:(?:price|priced|costing|costs?)\s+)?{_PRICE_WORDS}\s*"
+                          r"(?:a\s+price\s+of\s+)?(?:\$|usd\s*)?\s*(\d[\d,]*(?:\.\d+)?)\s*(?:\$|dollars?|usd|bucks)?", re.I)
+PRICE_AFTER = re.compile(r",?\s*\$\s*(\d[\d,]*(?:\.\d+)?)\s*(?:or less|or under|or below|max(?:imum)?|tops|and under)", re.I)
+FILLER = re.compile(r"^(?:hi|hello|please)?[\s,]*(?:i\s*(?:'m|am)?\s*(?:really\s+)?(?:need|want|would like|'d like|"
+                    r"looking for|searching for|shopping for)|looking for|find me|get me|show me|buy me|buy|"
+                    r"can you find(?: me)?)\s+(?:to buy\s+|to get\s+)?(?:an?\s+|some\s+|the\s+)?", re.I)
+
+
+# ---------------------------------------------------------------- typed requests: product type and specs
+# The value model was learned from the dataset's requests and scores a product mostly by the words its
+# title shares with the request. On a typed request that can buy "a headphone case" for "headphones", or
+# a 25 W charger for "a 100 watt charger". These two checks are added to its estimate for typed requests
+# only; the test requests, and so the reported results, never use them.
+UNITS = {'w': 'w', 'watt': 'w', 'watts': 'w', 'oz': 'oz', 'ounce': 'oz', 'ounces': 'oz', 'inch': 'inch', 'inches': 'inch',
+         'ft': 'ft', 'feet': 'ft', 'foot': 'ft', 'mah': 'mah', 'gb': 'gb', 'tb': 'tb', 'mm': 'mm', 'cm': 'cm', 'lb': 'lb',
+         'lbs': 'lb', 'pound': 'lb', 'pounds': 'lb', 'v': 'v', 'volt': 'v', 'volts': 'v', 'qt': 'qt', 'quart': 'qt',
+         'quarts': 'qt', 'liter': 'l', 'liters': 'l', 'litre': 'l', 'litres': 'l', 'l': 'l', 'ml': 'ml', 'pack': 'pack',
+         'packs': 'pack', 'pk': 'pack', 'pcs': 'pack', 'piece': 'pack', 'pieces': 'pack', 'count': 'pack', 'ct': 'pack'}
+SPEC = re.compile(r'(\d+(?:\.\d+)?)\s*-?\s*(' + '|'.join(sorted(UNITS, key=len, reverse=True)) + r')\b', re.I)
+PACK_OF = re.compile(r'\bpack of (\d+)\b', re.I)
+NOT_PRODUCT = set(UNITS) | {'size', 'sizes', 'color', 'colour', 'colors', 'pack', 'set', 'piece', 'count', 'inch', 'men',
+                            'mens', 'women', 'womens', 'kids', 'large', 'small', 'medium', 'xl', 'xxl', 'black', 'white',
+                            'red', 'blue', 'green', 'brown', 'pink', 'grey', 'gray', 'one', 'two', 'new', 'best', 'good'}
+ACCESSORIES = (r'case|cases|cover|covers|stand|holder|mount|strap|straps|skin|skins|protector|bag|pouch|sleeve|pads?|'
+               r'cushions?|tips|replacement|parts?|accessor(?:y|ies)|remote|filters?|refills?|lid|lids|hooks?|clips?|'
+               r'bracket|organizer|rack|decals?|stickers?|hanger|tray|earpads|charm|keychain')
+
+
+def request_specs(text):
+    """Numbers with units in a text, such as (100.0, 'w') for "100 watt" and (2.0, 'pack') for "2-pack"."""
+    found = {(float(n), UNITS[u.lower()]) for n, u in SPEC.findall(text)}
+    return found | {(float(n), 'pack') for n in PACK_OF.findall(text)}
+
+
+def request_head(query):
+    """The kind of product a request asks for: the last real noun of its first phrase ("charger")."""
+    for part in re.split(r'\b(?:with|for|in|of|that|which|to|from|on|without|under|by)\b', query.lower()):
+        words = [w for w in re.findall(r"[a-z][a-z'-]*", part) if w not in NOT_PRODUCT and len(w) > 2]
+        if words:
+            word = words[-1].split('-')[-1]
+            if word.endswith(('ches', 'shes', 'sses', 'xes')):
+                return word[:-2]
+            if word.endswith('ies'):
+                return word[:-3] + 'y'
+            return word[:-1] if word.endswith('s') and not word.endswith('ss') else word
+    return None
+
+
+def head_role(text, head):
+    """'head' if the title uses the word as the product itself at least once, 'modifier' if it only uses it
+    to describe another noun ("headphone hat"), None if it never uses it. Uses the store's spaCy tagger."""
+    from web_agent_site.engine.goal import nlp
+    forms, found = {head, head + 's', head + 'es'}, False
+    tokens = list(nlp(text[:400]))
+    for i, token in enumerate(tokens):
+        if token.text in forms:
+            found = True
+            after = tokens[i + 1] if i + 1 < len(tokens) else None
+            if after is None or after.pos_ not in ('NOUN', 'PROPN') or after.like_num or after.text in UNITS:
+                return 'head'
+    return 'modifier' if found else None
+
+
+def typed_check(title, extra, head, specs, request_words):
+    """Points added to the value model's estimate of buying a product, for a typed request."""
+    text, points = title.lower(), 0.0
+    if head:
+        role = head_role(text, head)
+        if role is None:
+            points -= 25  # the title never names the kind of product asked for
+        elif role == 'modifier':
+            points -= 25  # it only describes another product: a "headphone hat", a "charger hub"
+        else:
+            after = re.search(rf'\b{re.escape(head)}(?:s|es)?\W+({ACCESSORIES})\b', text)
+            before = re.search(rf'\b({ACCESSORIES})\b[^|]{{0,60}}\b(?:for|compatible|fits?)\b[^|]{{0,80}}\b{re.escape(head)}', text)
+            accessory = after or before
+            if accessory and accessory.group(1) not in request_words:
+                points -= 35  # an accessory for that kind of product, such as a case for headphones
+    have = request_specs(text + ' ' + extra)
+    for amount, unit in specs:
+        if (amount, unit) in have:
+            points += 12
+        elif any(u == unit for _, u in have):
+            points -= 15  # the same measure with a different amount, such as 25 W for 100 W
+    return points
+
+
+def typed_request_shopper(base, query):
+    """The value shopper, with the product-type and spec checks added to its estimates."""
+    head, specs = request_head(query), request_specs(query)
+    words = set(re.findall(r'[a-z]+', query.lower()))
+    from shopping_rules import option_groups
+
+    class TypedRequestShopper(base):
+        def make_shortlist(self, trip):
+            super().make_shortlist(trip)
+            for candidate in trip.found.values():
+                candidate.shortlist_value += typed_check(candidate.title, '', head, specs, words)
+            ranked = sorted(trip.found.values(), key=lambda c: -c.shortlist_value)[:self.inspect]
+            trip.queue = sorted(ranked, key=lambda c: (c.location, -c.shortlist_value))
+            trip.stage = 'inspect' if trip.queue else 'buy'
+
+        def on_item_page(self, trip, ob, valid):
+            candidate = trip.opening
+            action = super().on_item_page(trip, ob, valid)
+            if candidate is not None and trip.opening is None and candidate.value is not None:  # just scored
+                candidate.value += typed_check(candidate.title, str(option_groups(ob)), head, specs, words)
+                trip.best = max((c for c in trip.found.values() if c.value is not None), key=lambda c: c.value)
+            return action
+    return TypedRequestShopper
+
+
+def normalize_request(text):
+    """Writes a typed request the way the dataset's requests are written, which is what the value model
+    learned from: the budget at the end as ", and price lower than N dollars". Also returns a search query
+    without the budget and the filler words, and the budget. Test requests never pass through here."""
+    text = ' '.join(text.split()).strip(' .').lower()
+    match = BUDGET.search(text) or PRICE_BEFORE.search(text) or PRICE_AFTER.search(text)
+    budget = float(match.group(1).replace(',', '')) if match else None
+    core = (text[:match.start()] + ' ' + text[match.end():]) if match else text
+    core = re.sub(r'[\s,;.]*(?:,?\s*and)?[\s,;.]*$', '', ' '.join(core.split())).strip(' ,;.')
+    query = FILLER.sub('', core).strip(' ,;.') or core
+    # Titles write these specs as one word ("100W", "20V", "10000mAh"), and the search matches whole words.
+    query = re.sub(r'\b(\d+(?:\.\d+)?)\s*-?\s*(watts?|volts?|mah|gb|tb)\b',
+                   lambda m: m.group(1) + {'watt': 'w', 'watts': 'w', 'volt': 'v', 'volts': 'v'}.get(m.group(2), m.group(2)),
+                   query)
+    instruction = f'{core}{SEARCH_PRICE_TEXT} {budget:.2f} dollars' if budget else core
+    return instruction, query, budget
 STAGES = {'scan': 'Reading the search results', 'inspect': 'Opening the most promising products',
           'buy': 'Going back to buy the best one'}
 
@@ -68,6 +200,7 @@ class Demo:
         self.models, self.recorded = {}, {}
         self.thread = None
         self.screen, self.step_no, self.goal_idx, self.custom, self.custom_budget = None, 0, 0, False, None
+        self.custom_query = ''
 
     # ------------------------------------------------------------------ setup
     def load(self):
@@ -184,8 +317,10 @@ class Demo:
         if kind == 'value':
             from value_model import ValueShopper, ValueWeights
             # The settings of the reported evaluation (kaggle/pipeline.py, evaluate).
-            shopper = ValueShopper(ValueWeights.load(str(AGENTS[key][2])), inspect=14, pages=2, read_details=True,
-                                   step_limit=100)
+            # Typed requests add the product-type and spec checks; test requests use it exactly as evaluated.
+            shopper_class = typed_request_shopper(ValueShopper, self.custom_query) if self.custom else ValueShopper
+            shopper = shopper_class(ValueWeights.load(str(AGENTS[key][2])), inspect=14, pages=2, read_details=True,
+                                    step_limit=100)
 
             def act(ob, info):
                 action = shopper([ob], [info])[0]
@@ -226,8 +361,10 @@ class Demo:
             label, env = AGENTS[key][0], self.env
             self.custom, self.step_no, self.screen = request is not None, 0, None
             if self.custom:
-                budget = BUDGET.search(request)
-                self.custom_budget = float(budget.group(1)) if budget else None
+                request, query, self.custom_budget = normalize_request(request)
+                self.custom_query = query
+                # Its first search uses the cleaned query, as test requests use their predicted one.
+                env.extra_search[request.split(SEARCH_PRICE_TEXT)[0]] = [query]
                 self.goal_idx, goal_idx = -1, CUSTOM_GOAL
                 env.env.server.user_sessions[f'demo_{CUSTOM_GOAL}'] = {'goal': self.custom_goal(request), 'done': False}
             else:
@@ -262,8 +399,8 @@ class Demo:
             print(traceback.format_exc(), flush=True)
 
     def wait(self):
-        end = time.time() + self.delay
-        while time.time() < end and not self.stop:
+        start = time.time()  # the pace is read again while waiting, so a change applies at once
+        while time.time() < start + self.delay and not self.stop:
             time.sleep(0.03)
 
     def start(self, key, goal_idx, request=None):
@@ -320,7 +457,8 @@ class Handler(BaseHTTPRequestHandler):
             with DEMO_STATE.lock:
                 current = DEMO_STATE.run_id
                 events = DEMO_STATE.events[since:] if run == current else DEMO_STATE.events
-            return self.send(json.dumps({'run': current, 'events': events, 'reset': run != current}))
+            return self.send(json.dumps({'run': current, 'events': events, 'reset': run != current,
+                                         'delay': DEMO_STATE.delay}))
         return self.send('{}', code=404)
 
     def do_POST(self):
