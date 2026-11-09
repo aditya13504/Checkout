@@ -7,7 +7,7 @@ Then open http://127.0.0.1:3100, pick an agent and a test request, and press Sta
 is the page the agent actually received from the environment, and every decision is made live by the
 trained policy (or the value model) on this machine. Nothing is replayed from a file.
 
-Needs the prepared full catalogue in data/ (see demo/setup_demo.ps1).
+Needs the prepared full catalogue in data/, which run.ps1 or run.sh builds.
 """
 import argparse
 import json
@@ -297,7 +297,7 @@ def main():
     args = parser.parse_args()
     for path in (PREPARED / 'webshop.sqlite', DATA / 'products.sqlite'):
         if not path.exists():
-            sys.exit(f'{path} is missing. Run demo\\setup_demo.ps1 first.')
+            sys.exit(f'{path} is missing. Run run.ps1 (Windows) or run.sh (macOS) first.')
     server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
     threading.Thread(target=DEMO_STATE.load, daemon=True).start()
     url = f'http://127.0.0.1:{args.port}/'

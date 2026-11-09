@@ -6,14 +6,32 @@ Agents are trained in [WebShop](https://github.com/princeton-nlp/WebShop) (Princ
 
 The project also repairs defects in the original code that blocked training or changed results, and speeds up training. Appendix A of the report lists every change.
 
-## Run the live demo (Windows)
+## Run everything with one command
 
-1. Set up once, which needs Python 3.10 and about 20 GB of free disk:
-   `powershell -ExecutionPolicy Bypass -File demo\setup_demo.ps1`
-2. Double-click `demo\START_DEMO.bat`. It opens:
-   - the agent viewer, at http://127.0.0.1:3100, where the trained agents shop live
+**Windows** (PowerShell):
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/aditya13504/Checkout/main/run.ps1 | iex"
+```
+
+**macOS** (Terminal; Linux works too):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/aditya13504/Checkout/main/run.sh | bash
+```
+
+Run it in the folder where you want the project. It clones the repository into `Checkout/` (or updates it), then:
+
+1. installs Python 3.10 and the dependencies with [uv](https://docs.astral.sh/uv/), into `data/venv`
+2. downloads the 1.18-million-product catalogue and builds the search index and the product store
+3. downloads BERT and the trained agents
+4. runs the tests, and rebuilds the report and the results page from the run outputs
+5. starts the store and the live demo, and opens them in the browser:
+   - the live agent demo, at http://127.0.0.1:3100, where the trained agents shop
    - the results page, at http://127.0.0.1:3100/showcase/
-   - the store for people to try, at http://127.0.0.1:3000
+   - the store for people to try, at http://127.0.0.1:3000/new
+
+The first run takes about 30 minutes, downloads about 7 GB and needs about 20 GB of free disk; 8 GB stays in `data/`. Finished steps are skipped, so later runs start in a few minutes. Inside a clone, `run.ps1`, `run.sh` or a double-click on `demo\START_DEMO.bat` does the same. Set `CHECKOUT_SKIP_TESTS=1` to skip the tests.
 
 ## Reproduce the experiments
 
@@ -22,18 +40,6 @@ Upload [`kaggle/webshop_rl_kaggle.ipynb`](kaggle/webshop_rl_kaggle.ipynb) to Kag
 ```sh
 data\venv\Scripts\python.exe report\build_submission.py
 ```
-
-## Set up on Linux or macOS
-
-```sh
-git clone https://github.com/aditya13504/Checkout.git && cd Checkout
-python3.10 -m venv .venv && source .venv/bin/activate
-./setup.sh -d small        # or -d all for the full 1.18 million products
-python -m pytest tests     # the test suite
-python -m web_agent_site.app --attrs   # the store, at http://127.0.0.1:3000
-```
-
-`setup.sh` installs the dependencies, downloads the catalogue from a Hugging Face mirror, builds the slim catalogue and the SQLite search index in `data/prepared`, and prints the environment variables to set.
 
 ## Layout
 
@@ -45,7 +51,8 @@ python -m web_agent_site.app --attrs   # the store, at http://127.0.0.1:3000
 | `baseline_models/` | The agents: IL (`train_choice_il.py`), batched A2C (`train_rl.py`, `agent.py`, `vec_env.py`), the value shopper (`value_model.py`, `train_value_model.py`), the careful shopper and assist mode (`shopping_rules.py`), and evaluation (`test.py`) |
 | `kaggle/` | The pipeline of all experiment stages, and the notebook built from it |
 | `report/` | Report template, written interpretation, the generator, and `build_submission.py` |
-| `demo/` | Live demo: agent viewer, launcher and one-time setup |
+| `run.ps1`, `run.sh` | Set up and run everything, on Windows and on macOS or Linux |
+| `demo/` | Live demo: the agent viewer and its server |
 | `showcase/` | Interactive results page, built from the outputs by `build_data.py` |
 | `kaggle_outputs/` | The reported Kaggle run: results, logs and training metrics |
 | `kaggle_outputs_run1/` | Results of the earlier run that the report compares with |
