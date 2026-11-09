@@ -1,0 +1,32 @@
+*.pyc
+*.swp
+.ipynb_checkpoints/
+
+.DS_Store
+.idea/
+.pytest_cache/
+.vscode/
+
+__pycache__/
+# The local environment and catalogue (about 8 GB); demo/setup_demo.ps1 rebuilds them.
+/data/
+search_engine/indexes*
+search_engine/resources*
+user_session_logs/
+*_err_*.log
+
+# Kaggle runs: keep the results, logs and metrics; leave out model weights, archives,
+# the copies of the source code and the reports that submission/ replaces.
+kaggle_outputs*/webshop/
+kaggle_outputs*/**/*.pt
+kaggle_outputs*/**/*.pth
+kaggle_outputs*/**/*.npz
+kaggle_outputs*/**/*.zip
+kaggle_outputs*/outputs_full/report/
+kaggle_outputs*/outputs_full/submission/
+
+# The hand-in archive is rebuilt by report/build_submission.py.
+submission/*.zip
+
+# ChromeDriver is platform-specific: download one for the browser environment (see README).
+web_agent_site/envs/chromedriver

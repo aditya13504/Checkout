@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% from '_product.html' import product_image, stars, tabs %}
+{% block title %}{{ sub_page }} · {{ product_info.Title }} · WebShop{% endblock %}
+{% block body_class %}page-sub{% endblock %}
+{% block main %}
+<div class="bar">
+  <form method="post" action="{{ url_for('index', session_id=session_id) }}">
+    <button type="submit" class="btn-back">&larr; New search</button>
+  </form>
+  <form method="post" action="{{ url_for('item_page', session_id=session_id, asin=asin, keywords=keywords, page=page, options=options) }}">
+    <button type="submit" class="btn-quiet">Back to the product</button>
+  </form>
+</div>
+
+<div class="mini">
+  <span class="mini-img">{{ product_image(product_info, options) }}</span>
+  <div>
+    <p class="mini-title">{{ product_info.Title }}</p>
+    <p class="mini-meta"><span class="p-price">{{ product_info.Price }}</span>
+      {% for name, value in options.items() %}<span class="tagchip">{{ name }}: {{ value }}</span>{% endfor %}</p>
+  </div>
+</div>
+
+{{ tabs(session_id, asin, keywords, page, options, show_attrs, sub_page) }}
+
+<section class="tab-body">
+  {% if sub_page == 'Description' %}
+    {% if product_info.Description %}<div class="prose">{{ product_info.Description }}</div>
+    {% else %}<p class="none">This product has no description.</p>{% endif %}
+  {% elif sub_page == 'Features' %}
+    {% if product_info.BulletPoints %}
+    <ul class="bullets">{% for point in product_info.BulletPoints %}<li>{{ point }}</li>{% endfor %}</ul>
+    {% else %}<p class="none">This product lists no features.</p>{% endif %}
+  {% elif sub_page == 'Reviews' %}
+    {% for review in product_info.Reviews %}
+    <article class="review">
+      <div class="review-head">{{ stars(review.score) }}<h2>{{ review.title }}</h2></div>
+      <p>{{ review.body }}</p>
+    </article>
+    {% else %}<p class="none">This product has no reviews.</p>{% endfor %}
+  {% elif sub_page == 'Attributes' %}
+    {% if product_info.Attributes %}
+    <p class="note">Attributes the store recorded for this product.</p>
+    <ul class="attr-list">{% for attribute in product_info.Attributes %}<li>{{ attribute }}</li>{% endfor %}</ul>
+    {% else %}<p class="none">No attributes were recorded for this product.</p>{% endif %}
+  {% endif %}
+</section>
+{% endblock %}

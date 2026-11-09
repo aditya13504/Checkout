@@ -1,0 +1,31 @@
+Warning: Gym version v0.24.0 has a number of critical issues with `gym.make` such that the `reset` and `step` functions are called before returning the environment. It is recommend to downgrading to v0.23.1 or upgrading to v0.25.1
+Additionally, Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+C:\Users\Aditya\AppData\Local\Temp\claude\104552fd52aa745d\20ec5a0e-9c82-4f06-b94c-322c64dabd97\scratchpad\venv_c\lib\site-packages\typer\__init__.py:25: DeprecationWarning: 'click.utils.get_binary_stream' is deprecated and will be removed in Click 9.0.
+  from click.utils import get_binary_stream as get_binary_stream
+C:\Users\Aditya\AppData\Local\Temp\claude\104552fd52aa745d\20ec5a0e-9c82-4f06-b94c-322c64dabd97\scratchpad\venv_c\lib\site-packages\typer\__init__.py:26: DeprecationWarning: 'click.utils.get_text_stream' is deprecated and will be removed in Click 9.0.
+  from click.utils import get_text_stream as get_text_stream
+C:\Users\Aditya\AppData\Local\Temp\claude\104552fd52aa745d\20ec5a0e-9c82-4f06-b94c-322c64dabd97\scratchpad\venv_c\lib\site-packages\typer\completion.py:121: DeprecationWarning: 'BaseCommand' is deprecated and will be removed in Click 9.0. Use 'Command' instead.
+  cli: click.BaseCommand,
+C:\Users\Aditya\AppData\Local\Temp\claude\104552fd52aa745d\20ec5a0e-9c82-4f06-b94c-322c64dabd97\scratchpad\venv_c\lib\site-packages\spacy\cli\_util.py:11: DeprecationWarning: Importing 'parser.split_arg_string' is deprecated, it will only be available in 'shell_completion' in Click 9.0.
+  from click.parser import split_arg_string
+164 skipped
+C:\Users\Aditya\AppData\Local\Temp\claude\104552fd52aa745d\20ec5a0e-9c82-4f06-b94c-322c64dabd97\scratchpad\venv_c\lib\site-packages\bs4\element.py:784: DeprecationWarning: The 'text' argument to find()-type methods is deprecated. Use 'string' instead.
+  warnings.warn(
+Loaded 12087 goals.
+Evaluating on 500 test goals
+{
+  "episodes": 500,
+  "score": 80.145,
+  "success_rate": 59.4,
+  "bought_rate": 100.0,
+  "r_att": 90.60000000000001,
+  "r_option": 54.666666666666664,
+  "r_price": 99.6,
+  "r_type": 91.06,
+  "steps": 85.104,
+  "searches": 2.6,
+  "items": 2.356,
+  "options": 1.388
+}

@@ -1,0 +1,27 @@
+{# The shared pieces of a product page: its image, rating stars and the tabs to its other pages. #}
+{% macro product_image(product_info, options, id='') %}
+  {% set ns = namespace(img=product_info.MainImage) %}
+  {% for value in options.values() %}
+    {% if (product_info.option_to_image or {}).get(value) %}{% set ns.img = product_info.option_to_image[value] %}{% endif %}
+  {% endfor %}
+  <img {% if id %}id="{{ id }}" {% endif %}src="{{ ns.img }}" alt="{{ product_info.Title }}"
+    onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/no-image-available.png') }}'">
+{% endmacro %}
+
+{% macro stars(value) %}
+  {% set r = value | float(-1) %}
+  {% if r >= 0 %}
+  <span class="stars" role="img" aria-label="{{ r }} out of 5">
+    {% for i in range(5) %}<i class="{{ 'on' if r >= i + 0.75 else ('half' if r >= i + 0.25 else '') }}"></i>{% endfor %}
+  </span>
+  {% endif %}
+{% endmacro %}
+
+{% macro tabs(session_id, asin, keywords, page, options, show_attrs, current='') %}
+  <nav class="tabs" aria-label="More about this product">
+    {% for name in ['Description', 'Features', 'Reviews'] + (['Attributes'] if show_attrs else []) %}
+    <a href="{{ url_for('item_sub_page', session_id=session_id, asin=asin, keywords=keywords, page=page, sub_page=name, options=options) }}"
+       {% if name == current %}class="on" aria-current="page"{% endif %}>{{ name }}</a>
+    {% endfor %}
+  </nav>
+{% endmacro %}
