@@ -32,6 +32,16 @@ Run it in the folder where you want the project. It clones the repository into `
 
 The first run takes about 30 minutes, downloads about 7 GB and needs about 20 GB of free disk; 8 GB stays in `data/`. Finished steps are skipped, so later runs start in a few minutes. Inside a clone, `run.ps1`, `run.sh` or a double-click on `demo\START_DEMO.bat` does the same. Set `CHECKOUT_SKIP_TESTS=1` to skip the tests.
 
+## Publish it on Hugging Face Spaces
+
+The live demo and the store can run as one free Docker Space (CPU basic: 2 vCPU, 16 GB memory). The image downloads the catalogue and builds the search index and product store while it is built, so the first build takes about 30 minutes and later wake-ups a minute or two.
+
+1. Create a Space at https://huggingface.co/new-space: name `Checkout`, SDK **Docker**, hardware **CPU basic**.
+2. Create a token with write access at https://huggingface.co/settings/tokens.
+3. Run `powershell -ExecutionPolicy Bypass -File deploy\huggingface\push_space.ps1 -Space <your user>/Checkout` and give the token as the password.
+
+The files are in [`deploy/huggingface/`](deploy/huggingface): the Dockerfile, the start script that serves the viewer and the store on one address, and the Space's card.
+
 ## Reproduce the experiments
 
 Upload [`kaggle/webshop_rl_kaggle.ipynb`](kaggle/webshop_rl_kaggle.ipynb) to Kaggle, set the accelerator to *GPU T4 x2* and turn Internet on. The notebook runs every stage and writes the report; its first cell explains the steps. After downloading its outputs into `kaggle_outputs/`, rebuild the report and the hand-in zip with:
@@ -51,6 +61,7 @@ data\venv\Scripts\python.exe report\build_submission.py
 | `kaggle/` | The pipeline of all experiment stages, and the notebook built from it |
 | `report/` | Report template, written interpretation, the generator, and `build_submission.py` |
 | `run.ps1`, `run.sh` | Set up and run everything, on Windows and on macOS or Linux |
+| `deploy/huggingface/` | Dockerfile, start script and push script for a Hugging Face Space |
 | `demo/` | Live demo: the viewer and its server, which runs the value shopper on test requests or typed ones |
 | `kaggle_outputs/` | The reported Kaggle run: results, logs and training metrics |
 | `kaggle_outputs_run1/` | Results of the earlier run that the report compares with |

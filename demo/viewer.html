@@ -448,6 +448,7 @@ async function setup() {
     return setTimeout(setup, 1500);
   }
   S.goals = r.goals; S.rec = r.recorded[AGENT] || {};
+  if (r.store !== undefined) $('#try').href = r.store + '/new';  // '' when the store shares this address
   $('#n-tests').textContent = S.goals.length;
   summary(); renderQueue(); setState('Ready', '');
   setStatus('Ready');
