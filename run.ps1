@@ -170,8 +170,19 @@ function Open-Tunnel {
     } until ($found -or $tunnel.HasExited -or (Get-Date) -gt $deadline)
     if (-not $found) { throw "The tunnel did not start; see $log." }
     $url = $found.Matches[0].Value
-    Write-Host "`nPublic link, open while this window runs:  $url" -ForegroundColor Green
     Set-Content (Join-Path $logs 'public_url.txt') $url
+    # A new link takes a few seconds to a minute to exist. Asked for it too early, Windows remembers that it does not
+    # exist (for up to 15 minutes), so the link is checked through Cloudflare's DNS and opened only once it answers.
+    Write-Host "`nWaiting for Cloudflare to publish $url (up to a minute)..."
+    $deadline = (Get-Date).AddMinutes(3)
+    do {
+        Start-Sleep 3
+        $code = curl.exe -s -o NUL -w '%{http_code}' --max-time 10 --doh-url https://1.1.1.1/dns-query "$url/api/setup"
+    } until ($code -eq '200' -or $tunnel.HasExited -or (Get-Date) -gt $deadline)
+    if ($code -ne '200') { throw "The public link did not come up (last answer: $code); see $log." }
+    ipconfig /flushdns | Out-Null  # forget any earlier failed lookup of the link on this computer
+    Write-Host "`nPublic link, working now, while this window stays open:  $url" -ForegroundColor Green
+    Write-Host 'Send it to anyone. Each start gives a new link.'
     Start-Process $url
     return $tunnel
 }

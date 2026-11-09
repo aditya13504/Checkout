@@ -123,7 +123,18 @@ open_tunnel() {
   done
   [ -n "$url" ] || { echo "The tunnel did not start; see $DATA/logs/tunnel.log." >&2; exit 1; }
   echo "$url" > "$DATA/logs/public_url.txt"
-  printf '\n\033[32mPublic link, open while this window runs:  %s\033[0m\n' "$url"
+  # A new link takes a few seconds to a minute to exist. Asked for it too early, the computer remembers that it does
+  # not exist for a while, so the link is checked through Cloudflare's DNS and opened only once it answers.
+  echo "Waiting for Cloudflare to publish $url (up to a minute)..."
+  local code=''
+  for _ in $(seq 60); do
+    sleep 3
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 --doh-url https://1.1.1.1/dns-query "$url/api/setup" || true)
+    [ "$code" = 200 ] && break
+  done
+  [ "$code" = 200 ] || { echo "The public link did not come up (last answer: $code); see $DATA/logs/tunnel.log." >&2; exit 1; }
+  printf '\n\033[32mPublic link, working now, while this window stays open:  %s\033[0m\n' "$url"
+  echo 'Send it to anyone. Each start gives a new link.'
   open_url "$url"
 }
 TUNNEL=''
