@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% from '_product.html' import product_image, stars, tabs %}
+{% block title %}{{ product_info.Title }} · WebShop{% endblock %}
+{% block body_class %}page-item{% endblock %}
+{% block main %}
+<div class="bar">
+  <form method="post" action="{{ url_for('index', session_id=session_id) }}">
+    <button type="submit" class="btn-back">&larr; New search</button>
+  </form>
+  <form method="post" action="{{ url_for('search_results', session_id=session_id, keywords=keywords, page=page) }}">
+    <button type="submit" class="btn-quiet">Back to the results</button>
+  </form>
+</div>
+
+<article class="product">
+  <div class="gallery">{{ product_image(product_info, options, 'product-image') }}</div>
+
+  <div class="info">
+    <h1 class="p-title">{{ product_info.Title }}</h1>
+    <div class="p-meta">
+      <span class="p-price">{{ product_info.Price }}</span>
+      {% if product_info.Rating and product_info.Rating != 'N.A.' %}
+      <span class="p-rating">{{ stars(product_info.Rating) }}<span>{{ product_info.Rating }}</span></span>
+      {% endif %}
+    </div>
+
+    {% if product_info.options %}
+    <div class="opts">
+      {% for option_name, option_contents in product_info.options.items() %}
+      <fieldset class="opt">
+        <legend><span class="opt-name">{{ option_name }}</span>
+          {% if option_name in options %}<span class="opt-chosen">{{ options[option_name] }}</span>
+          {% else %}<span class="opt-none">Not chosen</span>{% endif %}
+        </legend>
+        <div class="chips">
+          {% for option_content in option_contents %}
+          {% set chosen = options.copy() %}
+          {% set _ = chosen.update({option_name: option_content}) %}
+          {% set on = options.get(option_name) == option_content %}
+          <a class="chip{{ ' on' if on }}" href="{{ url_for('item_page', session_id=session_id, asin=asin, keywords=keywords, page=page, options=chosen) }}"
+             {% if on %}aria-current="true"{% endif %}>{{ option_content }}</a>
+          {% endfor %}
+        </div>
+      </fieldset>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form class="buy" method="post" action="{{ url_for('done', session_id=session_id, asin=asin, options=options) }}">
+      <button type="submit" class="btn-buy">Buy now</button>
+      <p>Ends the task. The store scores this product{% if product_info.options %} with the options shown above{% endif %}.</p>
+    </form>
+
+    {{ tabs(session_id, asin, keywords, page, options, show_attrs) }}
+  </div>
+</article>
+{% endblock %}

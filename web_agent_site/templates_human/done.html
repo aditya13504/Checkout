@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Your score {{ score }} · WebShop{% endblock %}
+{% block body_class %}page-done{% endblock %}
+{% block main %}
+{% set n_att = goal_attributes | length %}
+{% set n_opt = goal_options | length %}
+{% set price_ok = 1 if r_price else 0 %}
+{% if score >= 100 %}{% set verdict, tone = 'Exact match', 'good' %}
+{% elif r_type == 0 %}{% set verdict, tone = 'Wrong kind of product', 'bad' %}
+{% elif score >= 50 %}{% set verdict, tone = 'Partial match', 'mid' %}
+{% else %}{% set verdict, tone = 'Poor match', 'bad' %}{% endif %}
+
+<section class="result">
+  <div class="score-tag tone-{{ tone }}">
+    <span class="st-lab">Your reward</span>
+    <div class="st-num"><span id="score" data-to="{{ score }}">{{ '%.1f' | format(score) }}</span><small>/ 100</small></div>
+    <p class="st-verdict">{{ verdict }}</p>
+    <p class="st-steps">Bought at step {{ steps }}</p>
+  </div>
+
+  <div class="bought">
+    <h1>You bought</h1>
+    <div class="mini">
+      <span class="mini-img"><img src="{{ product.MainImage }}" alt=""
+        onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/no-image-available.png') }}'"></span>
+      <div>
+        <p class="mini-title">{{ product.Title }}</p>
+        <p class="mini-meta"><span class="p-price">${{ '%.2f' | format(price_paid) }}</span>
+          {% for name, value in options.items() %}<span class="tagchip">{{ name }}: {{ value }}</span>{% else %}<span class="tagchip quiet">No options chosen</span>{% endfor %}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="breakdown" aria-labelledby="how">
+  <h2 id="how">How the store scored it</h2>
+  <ul class="checks">
+    <li class="{{ 'ok' if r_type >= 1 else ('part' if r_type >= 0.5 else 'no') }}">
+      <span class="ck-name">Product type</span>
+      <span class="ck-val">{% if r_type >= 1 %}The right kind of product{% elif r_type >= 0.5 %}A similar kind: the score is halved{% elif r_type > 0 %}A different kind: the score is cut to a tenth{% else %}The wrong kind: the score is zero{% endif %}</span>
+    </li>
+    <li class="{{ 'ok' if att_hits == n_att else ('part' if att_hits else 'no') }}">
+      <span class="ck-name">Attributes</span>
+      <span class="ck-val">{{ att_hits }} of {{ n_att }} matched
+        <span class="ck-chips">{% for a in goal_attributes %}<span class="tagchip">{{ a }}</span>{% endfor %}</span></span>
+    </li>
+    <li class="{{ 'na' if not n_opt else ('ok' if opt_hits == n_opt else ('part' if opt_hits else 'no')) }}">
+      <span class="ck-name">Options</span>
+      <span class="ck-val">{% if n_opt %}{{ opt_hits }} of {{ n_opt }} matched
+        <span class="ck-chips">{% for o in goal_options %}<span class="tagchip">{{ o }}</span>{% endfor %}</span>
+        {% else %}The request named no options{% endif %}</span>
+    </li>
+    <li class="{{ 'ok' if r_price else 'no' }}">
+      <span class="ck-name">Price</span>
+      <span class="ck-val">Charged ${{ '%.2f' | format(price_paid) }}{% if budget %}, against a limit of ${{ '%.2f' | format(budget) }}: {{ 'within budget' if r_price else 'over budget' }}{% endif %}</span>
+    </li>
+  </ul>
+  <p class="formula">({{ att_hits }} attributes + {{ opt_hits }} options + {{ price_ok }} price) &divide; {{ n_att + n_opt + 1 }} parts &times; {{ r_type }} type = <b>{{ '%.1f' | format(score) }}</b></p>
+</section>
+
+{% if agents %}
+<section class="vs" aria-labelledby="vs">
+  <h2 id="vs">The agents on request {{ request_no }}</h2>
+  <p class="note">Their scores from the recorded test run on this same request. The live demo reproduces them.</p>
+  <ol class="vs-list">
+    <li class="vs-you">
+      <span class="vs-name">You<small>A person</small></span>
+      <span class="vs-bar"><i style="--w:{{ score }}%"></i></span>
+      <span class="vs-score">{{ '%.1f' | format(score) }}</span>
+      <span class="vs-steps">{{ steps }} steps</span>
+    </li>
+    {% for a in agents %}
+    <li class="vs-{{ a.key }}">
+      <span class="vs-name">{{ a.name }}<small>{{ a.sub }}</small></span>
+      <span class="vs-bar"><i style="--w:{{ a.score }}%"></i></span>
+      <span class="vs-score">{{ '%.1f' | format(a.score) }}</span>
+      <span class="vs-steps">{{ a.steps }} steps</span>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endif %}
+
+<div class="actions">
+  <a class="btn-go" href="{{ retry_url }}">Try this request again</a>
+  <a class="btn-quiet" href="{{ url_for('new_session') }}">Shop another request</a>
+  {% if agents %}<a class="btn-quiet" href="{{ demo_url }}">Watch the agents on it</a>{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var el = document.getElementById('score');
+  if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var to = parseFloat(el.dataset.to), t0 = performance.now(), dur = 900;
+  function tick() {
+    var k = Math.min(1, Math.max(0, (performance.now() - t0) / dur));
+    el.textContent = (to * (1 - Math.pow(1 - k, 3))).toFixed(1);
+    if (k < 1) requestAnimationFrame(tick);
+  }
+  tick();
+  setTimeout(function () { el.textContent = to.toFixed(1); }, dur + 60);  // frames pause in background tabs
+})();
+</script>
+{% endblock %}

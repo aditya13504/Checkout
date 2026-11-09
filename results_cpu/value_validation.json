@@ -1,0 +1,129 @@
+{
+  "split": "eval (goals 500 to 1,499)",
+  "catalogue": "full, 1,181,430 products",
+  "rows": [
+    {
+      "name": "value_p2_k8",
+      "label": "First model, no attribute phrases: 2 pages, 8 inspected",
+      "score": 78.59971428571428,
+      "low": 76.79621428571429,
+      "high": 80.40538571428571,
+      "success": 54.0,
+      "steps": 62.555,
+      "goals": 1000,
+      "settings": {
+        "policy": "value",
+        "softmax": 1,
+        "search": "top1",
+        "assist": 0,
+        "truncation": "right",
+        "inspect": 8,
+        "queries": "top1",
+        "read_details": 1,
+        "pages": 2,
+        "value_model": "value_model.json",
+        "split": "eval",
+        "model": ""
+      }
+    },
+    {
+      "name": "value_p1_k10",
+      "label": "First model, no attribute phrases: 1 page, 10 inspected",
+      "score": 79.1492142857143,
+      "low": 77.3682125,
+      "high": 80.9198505952381,
+      "success": 55.1,
+      "steps": 71.5,
+      "goals": 1000,
+      "settings": {
+        "policy": "value",
+        "softmax": 1,
+        "search": "top1",
+        "assist": 0,
+        "truncation": "right",
+        "inspect": 10,
+        "queries": "top1",
+        "read_details": 1,
+        "pages": 1,
+        "value_model": "value_model.json",
+        "split": "eval",
+        "model": ""
+      }
+    },
+    {
+      "name": "value_p2_k12",
+      "label": "First model, no attribute phrases: 2 pages, 12 inspected",
+      "score": 79.34471428571429,
+      "low": 77.55913988095237,
+      "high": 81.12556071428571,
+      "success": 55.7,
+      "steps": 83.834,
+      "goals": 1000,
+      "settings": {
+        "policy": "value",
+        "softmax": 1,
+        "search": "top1",
+        "assist": 0,
+        "truncation": "right",
+        "inspect": 12,
+        "queries": "top1",
+        "read_details": 1,
+        "pages": 2,
+        "value_model": "value_model.json",
+        "split": "eval",
+        "model": ""
+      }
+    },
+    {
+      "name": "final_k12",
+      "label": "Final model: 2 pages per search, 12 inspected",
+      "score": 80.56304761904762,
+      "low": 78.79754345238096,
+      "high": 82.3500482142857,
+      "success": 58.699999999999996,
+      "steps": 83.868,
+      "goals": 1000,
+      "settings": {
+        "policy": "value",
+        "softmax": 1,
+        "search": "top1",
+        "assist": 0,
+        "truncation": "right",
+        "inspect": 12,
+        "queries": "top1",
+        "read_details": 1,
+        "pages": 2,
+        "value_model": "value_model.json",
+        "split": "eval",
+        "model": ""
+      }
+    },
+    {
+      "name": "final_k14",
+      "label": "Final model: 2 pages per search, 14 inspected (chosen)",
+      "score": 80.84338095238094,
+      "low": 79.10615059523809,
+      "high": 82.60533750000002,
+      "success": 58.3,
+      "steps": 84.995,
+      "goals": 1000,
+      "settings": {
+        "policy": "value",
+        "softmax": 1,
+        "search": "top1",
+        "assist": 0,
+        "truncation": "right",
+        "inspect": 14,
+        "queries": "top1",
+        "read_details": 1,
+        "pages": 2,
+        "value_model": "value_model.json",
+        "split": "eval",
+        "model": ""
+      }
+    }
+  ],
+  "features": 33,
+  "train_goals": 2000,
+  "train_products": 65948
+}

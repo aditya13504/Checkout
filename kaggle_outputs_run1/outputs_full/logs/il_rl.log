@@ -1,0 +1,197 @@
+Warning: Gym version v0.24.0 has a number of critical issues with `gym.make` such that the `reset` and `step` functions are called before returning the environment. It is recommend to downgrading to v0.23.1 or upgrading to v0.25.1
+Additionally, Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+/tmp/webshop_venv/lib/python3.10/site-packages/typer/__init__.py:25: DeprecationWarning: 'click.utils.get_binary_stream' is deprecated and will be removed in Click 9.0.
+  from click.utils import get_binary_stream as get_binary_stream
+/tmp/webshop_venv/lib/python3.10/site-packages/typer/__init__.py:26: DeprecationWarning: 'click.utils.get_text_stream' is deprecated and will be removed in Click 9.0.
+  from click.utils import get_text_stream as get_text_stream
+/tmp/webshop_venv/lib/python3.10/site-packages/typer/completion.py:121: DeprecationWarning: 'BaseCommand' is deprecated and will be removed in Click 9.0. Use 'Command' instead.
+  cli: click.BaseCommand,
+/tmp/webshop_venv/lib/python3.10/site-packages/spacy/cli/_util.py:11: DeprecationWarning: Importing 'parser.split_arg_string' is deprecated, it will only be available in 'shell_completion' in Click 9.0.
+  from click.parser import split_arg_string
+/tmp/webshop_venv/lib/python3.10/site-packages/thefuzz/fuzz.py:11: UserWarning: Using slow pure-python SequenceMatcher. Install python-Levenshtein to remove this warning
+  warnings.warn('Using slow pure-python SequenceMatcher. Install python-Levenshtein to remove this warning')
+/tmp/webshop_venv/lib/python3.10/site-packages/torch/__init__.py:696: UserWarning: torch.set_default_tensor_type() is deprecated as of PyTorch 2.1, please use torch.set_default_dtype() and torch.set_default_device() as alternatives. (Triggered internally at ../torch/csrc/tensor/python_tensor.cpp:451.)
+  _C._set_default_tensor_type(t)
+Namespace(seed=0, output_dir='/kaggle/working/outputs_full/runs/il_rl', ckpt_every_min=15, eval_every_min=15.0, eval_episodes=100, log_freq=50, resume=1, num_envs=16, num_eval_envs=16, num_workers=2, step_limit=100, max_steps=300000, max_hours=2.5, learning_rate=1e-05, gamma=0.9, clip=10, bptt=8, exploration_method='softmax', w_pg=1, w_td=1, w_il=0, w_en=1, amp=1, token_budget=0, network='bert', bert_path='/kaggle/working/outputs_full/runs/il_seed0/model_best.pth', embedding_dim=128, hidden_dim=128, get_image=0, num=None, click_item_name=1, state_format='text_rich', human_goals=1, num_prev_obs=0, num_prev_actions=0, extra_search_path='./data/goal_query_predict.json', ban_buy=0, go_to_item=0, go_to_search=0, harsh_reward=0, debug=0)
+Products loaded.
+Keys cleaned.
+Attributes loaded.
+  0%|          | 0/200000 [00:00<?, ?it/s]  5%|▍         | 9599/200000 [00:00<00:01, 95969.50it/s] 10%|▉         | 19196/200000 [00:00<00:01, 95895.35it/s] 14%|█▍        | 28786/200000 [00:00<00:01, 94610.42it/s] 19%|█▉        | 38250/200000 [00:00<00:01, 93987.91it/s] 24%|██▍       | 47651/200000 [00:00<00:01, 92784.56it/s] 28%|██▊       | 56984/200000 [00:00<00:01, 92963.04it/s] 33%|███▎      | 66531/200000 [00:00<00:01, 93768.85it/s] 38%|███▊      | 75910/200000 [00:00<00:01, 92383.35it/s] 43%|████▎     | 85154/200000 [00:00<00:01, 91154.71it/s] 47%|████▋     | 94275/200000 [00:01<00:03, 29391.09it/s] 52%|█████▏    | 103257/200000 [00:01<00:02, 36781.93it/s] 56%|█████▌    | 112369/200000 [00:01<00:01, 44863.91it/s] 61%|██████    | 121671/200000 [00:02<00:01, 53301.59it/s] 65%|██████▌   | 130771/200000 [00:02<00:01, 60848.87it/s] 70%|██████▉   | 139858/200000 [00:02<00:00, 67525.10it/s] 74%|███████▍  | 148752/200000 [00:02<00:00, 72685.00it/s] 79%|███████▉  | 157522/200000 [00:02<00:00, 75622.24it/s] 83%|████████▎ | 166869/200000 [00:02<00:00, 80359.21it/s] 88%|████████▊ | 176245/200000 [00:02<00:00, 84043.23it/s] 93%|█████████▎| 185568/200000 [00:02<00:00, 86631.89it/s] 97%|█████████▋| 194676/200000 [00:02<00:00, 81328.94it/s]100%|██████████| 200000/200000 [00:02<00:00, 67838.51it/s]
+164 skipped
+Loaded 12087 goals.
+/tmp/webshop_venv/lib/python3.10/site-packages/bs4/element.py:784: DeprecationWarning: The 'text' argument to find()-type methods is deprecated. Use 'string' instead.
+  warnings.warn(
+12087 goals loaded
+[eval] step 0: score 57.0, success 0.220
+step 50 | 1.6 min | 12.7 transitions/s | episode score 55.5 | success 0.228 | token budget 25767
+GPU out of memory: token budget lowered to 12883
+step 100 | 2.7 min | 12.1 transitions/s | episode score 51.8 | success 0.165 | token budget 14171
+step 150 | 3.9 min | 12.0 transitions/s | episode score 49.4 | success 0.185 | token budget 25102
+step 200 | 5.1 min | 10.3 transitions/s | episode score 43.4 | success 0.070 | token budget 25102
+step 250 | 6.4 min | 11.0 transitions/s | episode score 42.6 | success 0.070 | token budget 25102
+step 300 | 7.5 min | 11.1 transitions/s | episode score 43.9 | success 0.090 | token budget 25102
+step 350 | 8.8 min | 10.7 transitions/s | episode score 43.0 | success 0.090 | token budget 25102
+step 400 | 10.1 min | 9.9 transitions/s | episode score 46.6 | success 0.085 | token budget 25102
+step 450 | 11.4 min | 10.6 transitions/s | episode score 50.8 | success 0.130 | token budget 25102
+step 500 | 12.6 min | 10.8 transitions/s | episode score 45.3 | success 0.100 | token budget 25102
+step 550 | 13.8 min | 11.3 transitions/s | episode score 47.3 | success 0.150 | token budget 25102
+step 600 | 15.1 min | 10.6 transitions/s | episode score 50.6 | success 0.170 | token budget 25102
+[eval] step 624: score 60.7, success 0.290
+step 650 | 16.6 min | 8.8 transitions/s | episode score 50.9 | success 0.155 | token budget 25102
+step 700 | 17.8 min | 11.2 transitions/s | episode score 47.2 | success 0.150 | token budget 25102
+step 750 | 19.0 min | 10.8 transitions/s | episode score 47.6 | success 0.105 | token budget 25102
+step 800 | 20.3 min | 10.1 transitions/s | episode score 43.6 | success 0.095 | token budget 25102
+step 850 | 21.6 min | 10.6 transitions/s | episode score 42.1 | success 0.110 | token budget 25102
+step 900 | 22.9 min | 10.6 transitions/s | episode score 45.2 | success 0.085 | token budget 25102
+GPU out of memory: token budget lowered to 13806
+step 950 | 24.1 min | 10.7 transitions/s | episode score 46.0 | success 0.090 | token budget 18374
+step 1000 | 25.4 min | 10.2 transitions/s | episode score 45.5 | success 0.110 | token budget 26900
+GPU out of memory: token budget lowered to 13450
+step 1050 | 26.7 min | 10.2 transitions/s | episode score 46.4 | success 0.095 | token budget 19691
+step 1100 | 27.9 min | 10.9 transitions/s | episode score 49.6 | success 0.150 | token budget 26208
+step 1150 | 29.2 min | 10.5 transitions/s | episode score 44.5 | success 0.125 | token budget 26208
+step 1200 | 30.6 min | 9.8 transitions/s | episode score 46.3 | success 0.105 | token budget 26208
+[eval] step 1216: score 47.2, success 0.110
+step 1250 | 32.1 min | 8.5 transitions/s | episode score 50.7 | success 0.155 | token budget 26208
+GPU out of memory: token budget lowered to 13104
+step 1300 | 33.3 min | 11.2 transitions/s | episode score 46.3 | success 0.105 | token budget 23212
+GPU out of memory: token budget lowered to 12766
+step 1350 | 34.6 min | 10.7 transitions/s | episode score 53.8 | success 0.215 | token budget 12766
+step 1400 | 35.8 min | 10.7 transitions/s | episode score 50.4 | success 0.110 | token budget 24873
+step 1450 | 37.1 min | 10.8 transitions/s | episode score 49.9 | success 0.140 | token budget 27360
+GPU out of memory: token budget lowered to 13680
+step 1500 | 38.3 min | 11.1 transitions/s | episode score 51.5 | success 0.150 | token budget 24231
+GPU out of memory: token budget lowered to 13327
+step 1550 | 39.4 min | 11.3 transitions/s | episode score 51.0 | success 0.170 | token budget 13327
+step 1600 | 40.7 min | 10.6 transitions/s | episode score 50.1 | success 0.175 | token budget 25964
+GPU out of memory: token budget lowered to 12982
+step 1650 | 41.9 min | 11.4 transitions/s | episode score 49.5 | success 0.175 | token budget 20905
+step 1700 | 43.1 min | 10.7 transitions/s | episode score 52.4 | success 0.185 | token budget 25294
+step 1750 | 44.3 min | 11.1 transitions/s | episode score 52.8 | success 0.185 | token budget 25294
+step 1800 | 45.6 min | 10.6 transitions/s | episode score 52.8 | success 0.210 | token budget 25294
+[eval] step 1830: score 59.5, success 0.240
+step 1850 | 47.1 min | 8.7 transitions/s | episode score 51.3 | success 0.185 | token budget 25294
+step 1900 | 48.3 min | 11.1 transitions/s | episode score 49.9 | success 0.145 | token budget 25294
+step 1950 | 49.6 min | 10.6 transitions/s | episode score 45.7 | success 0.100 | token budget 25294
+step 2000 | 50.9 min | 10.1 transitions/s | episode score 50.8 | success 0.160 | token budget 25294
+step 2050 | 52.1 min | 10.6 transitions/s | episode score 51.4 | success 0.180 | token budget 25294
+step 2100 | 53.4 min | 10.8 transitions/s | episode score 53.9 | success 0.180 | token budget 25294
+GPU out of memory: token budget lowered to 12647
+step 2150 | 54.6 min | 11.1 transitions/s | episode score 58.4 | success 0.245 | token budget 16832
+step 2200 | 55.8 min | 10.4 transitions/s | episode score 53.5 | success 0.165 | token budget 24642
+step 2250 | 57.1 min | 10.8 transitions/s | episode score 52.2 | success 0.200 | token budget 24642
+step 2300 | 58.3 min | 11.0 transitions/s | episode score 54.0 | success 0.200 | token budget 24642
+step 2350 | 59.5 min | 10.9 transitions/s | episode score 53.1 | success 0.185 | token budget 24642
+GPU out of memory: token budget lowered to 13553
+step 2400 | 60.8 min | 10.2 transitions/s | episode score 51.3 | success 0.125 | token budget 19840
+GPU out of memory: token budget lowered to 13203
+[eval] step 2432: score 56.2, success 0.220
+step 2450 | 62.3 min | 9.0 transitions/s | episode score 53.2 | success 0.170 | token budget 15975
+step 2500 | 63.5 min | 11.2 transitions/s | episode score 57.7 | success 0.225 | token budget 25725
+GPU out of memory: token budget lowered to 12862
+step 2550 | 64.7 min | 11.2 transitions/s | episode score 51.1 | success 0.140 | token budget 20711
+step 2600 | 66.0 min | 10.3 transitions/s | episode score 52.2 | success 0.155 | token budget 25060
+step 2650 | 67.2 min | 11.2 transitions/s | episode score 48.4 | success 0.115 | token budget 25060
+step 2700 | 68.4 min | 11.2 transitions/s | episode score 53.1 | success 0.180 | token budget 25060
+step 2750 | 69.5 min | 11.3 transitions/s | episode score 50.5 | success 0.180 | token budget 25060
+step 2800 | 70.8 min | 10.6 transitions/s | episode score 52.4 | success 0.205 | token budget 25060
+step 2850 | 72.0 min | 11.2 transitions/s | episode score 55.2 | success 0.185 | token budget 25060
+GPU out of memory: token budget lowered to 12530
+step 2900 | 73.2 min | 10.7 transitions/s | episode score 51.7 | success 0.130 | token budget 12530
+step 2950 | 74.4 min | 11.4 transitions/s | episode score 53.7 | success 0.160 | token budget 22195
+GPU out of memory: token budget lowered to 13427
+step 3000 | 75.7 min | 10.4 transitions/s | episode score 55.0 | success 0.200 | token budget 17869
+step 3050 | 76.9 min | 11.6 transitions/s | episode score 50.1 | success 0.135 | token budget 26160
+[eval] step 3054: score 55.5, success 0.240
+GPU out of memory: token budget lowered to 13080
+step 3100 | 78.4 min | 8.9 transitions/s | episode score 50.2 | success 0.165 | token budget 21062
+GPU out of memory: token budget lowered to 12742
+step 3150 | 79.6 min | 10.7 transitions/s | episode score 51.7 | success 0.180 | token budget 12742
+step 3200 | 80.8 min | 10.9 transitions/s | episode score 55.8 | success 0.200 | token budget 24825
+GPU out of memory: token budget lowered to 13653
+step 3250 | 82.0 min | 11.4 transitions/s | episode score 55.6 | success 0.170 | token budget 15018
+step 3300 | 83.2 min | 11.2 transitions/s | episode score 55.7 | success 0.205 | token budget 24183
+GPU out of memory: token budget lowered to 13300
+step 3350 | 84.4 min | 10.6 transitions/s | episode score 56.4 | success 0.220 | token budget 17702
+step 3400 | 85.7 min | 10.5 transitions/s | episode score 51.0 | success 0.170 | token budget 25916
+step 3450 | 86.9 min | 11.2 transitions/s | episode score 55.9 | success 0.240 | token budget 25916
+GPU out of memory: token budget lowered to 12958
+step 3500 | 88.1 min | 11.4 transitions/s | episode score 54.9 | success 0.160 | token budget 17245
+step 3550 | 89.2 min | 11.5 transitions/s | episode score 51.3 | success 0.145 | token budget 25246
+step 3600 | 90.5 min | 10.6 transitions/s | episode score 58.7 | success 0.215 | token budget 25246
+GPU out of memory: token budget lowered to 12623
+step 3650 | 91.7 min | 10.7 transitions/s | episode score 56.0 | success 0.220 | token budget 12623
+[eval] step 3671: score 61.4, success 0.250
+step 3700 | 93.3 min | 8.8 transitions/s | episode score 55.8 | success 0.205 | token budget 22360
+GPU out of memory: token budget lowered to 13527
+step 3750 | 94.5 min | 10.8 transitions/s | episode score 55.0 | success 0.155 | token budget 13527
+step 3800 | 95.7 min | 10.7 transitions/s | episode score 56.7 | success 0.190 | token budget 26356
+GPU out of memory: token budget lowered to 13178
+step 3850 | 96.9 min | 11.5 transitions/s | episode score 56.1 | success 0.225 | token budget 19291
+step 3900 | 98.1 min | 11.1 transitions/s | episode score 53.1 | success 0.170 | token budget 25676
+GPU out of memory: token budget lowered to 12838
+step 3950 | 99.3 min | 10.9 transitions/s | episode score 53.9 | success 0.205 | token budget 12838
+step 4000 | 100.5 min | 11.0 transitions/s | episode score 57.6 | success 0.225 | token budget 25014
+step 4050 | 101.7 min | 11.1 transitions/s | episode score 53.6 | success 0.185 | token budget 25014
+GPU out of memory: token budget lowered to 13757
+step 4100 | 103.0 min | 10.9 transitions/s | episode score 50.5 | success 0.150 | token budget 18309
+step 4150 | 104.2 min | 10.8 transitions/s | episode score 53.2 | success 0.155 | token budget 26803
+GPU out of memory: token budget lowered to 13401
+step 4200 | 105.5 min | 10.1 transitions/s | episode score 56.0 | success 0.185 | token budget 16215
+step 4250 | 106.7 min | 11.3 transitions/s | episode score 55.2 | success 0.165 | token budget 26111
+GPU out of memory: token budget lowered to 13055
+[eval] step 4283: score 60.6, success 0.200
+step 4300 | 108.2 min | 9.0 transitions/s | episode score 58.1 | success 0.165 | token budget 21023
+step 4350 | 109.4 min | 10.9 transitions/s | episode score 55.6 | success 0.205 | token budget 25437
+step 4400 | 110.7 min | 10.0 transitions/s | episode score 50.3 | success 0.155 | token budget 25437
+step 4450 | 111.9 min | 11.2 transitions/s | episode score 57.7 | success 0.200 | token budget 25437
+step 4500 | 113.1 min | 11.5 transitions/s | episode score 55.5 | success 0.215 | token budget 25437
+step 4550 | 114.3 min | 11.3 transitions/s | episode score 56.7 | success 0.220 | token budget 25437
+step 4600 | 115.5 min | 10.4 transitions/s | episode score 50.2 | success 0.180 | token budget 25437
+GPU out of memory: token budget lowered to 12718
+step 4650 | 116.7 min | 11.5 transitions/s | episode score 55.9 | success 0.190 | token budget 18617
+GPU out of memory: token budget lowered to 13627
+step 4700 | 117.9 min | 10.6 transitions/s | episode score 56.7 | success 0.250 | token budget 13627
+step 4750 | 119.1 min | 11.7 transitions/s | episode score 55.1 | success 0.195 | token budget 24136
+GPU out of memory: token budget lowered to 13274
+step 4800 | 120.3 min | 10.6 transitions/s | episode score 57.0 | success 0.210 | token budget 16061
+step 4850 | 121.5 min | 11.5 transitions/s | episode score 58.6 | success 0.215 | token budget 25864
+GPU out of memory: token budget lowered to 12932
+step 4900 | 122.6 min | 11.6 transitions/s | episode score 55.1 | success 0.240 | token budget 17211
+[eval] step 4904: score 61.8, success 0.300
+step 4950 | 124.1 min | 9.0 transitions/s | episode score 55.9 | success 0.190 | token budget 25197
+GPU out of memory: token budget lowered to 12598
+step 5000 | 125.4 min | 10.1 transitions/s | episode score 55.4 | success 0.185 | token budget 13857
+step 5050 | 126.6 min | 11.5 transitions/s | episode score 60.0 | success 0.225 | token budget 24545
+GPU out of memory: token budget lowered to 13499
+step 5100 | 127.8 min | 11.5 transitions/s | episode score 54.5 | success 0.180 | token budget 19761
+GPU out of memory: token budget lowered to 13150
+step 5150 | 128.9 min | 11.5 transitions/s | episode score 58.3 | success 0.230 | token budget 17502
+GPU out of memory: token budget lowered to 12811
+step 5200 | 130.2 min | 10.5 transitions/s | episode score 62.3 | success 0.270 | token budget 14092
+step 5250 | 131.3 min | 11.7 transitions/s | episode score 59.2 | success 0.240 | token budget 24963
+step 5300 | 132.5 min | 11.2 transitions/s | episode score 55.4 | success 0.190 | token budget 24963
+GPU out of memory: token budget lowered to 12481
+step 5350 | 133.7 min | 11.4 transitions/s | episode score 57.9 | success 0.245 | token budget 16611
+step 5400 | 134.9 min | 10.6 transitions/s | episode score 55.0 | success 0.170 | token budget 24318
+GPU out of memory: token budget lowered to 13374
+step 5450 | 136.2 min | 10.8 transitions/s | episode score 54.4 | success 0.210 | token budget 13374
+step 5500 | 137.3 min | 11.8 transitions/s | episode score 58.1 | success 0.220 | token budget 23691
+GPU out of memory: token budget lowered to 13030
+[eval] step 5530: score 62.1, success 0.260
+step 5550 | 138.7 min | 9.4 transitions/s | episode score 55.2 | success 0.220 | token budget 15766
+step 5600 | 140.0 min | 10.7 transitions/s | episode score 57.9 | success 0.215 | token budget 25389
+step 5650 | 141.1 min | 11.3 transitions/s | episode score 55.1 | success 0.210 | token budget 25389
+step 5700 | 142.3 min | 11.2 transitions/s | episode score 56.6 | success 0.215 | token budget 25389
+GPU out of memory: token budget lowered to 12694
+step 5750 | 143.6 min | 10.8 transitions/s | episode score 54.8 | success 0.205 | token budget 18583
+step 5800 | 144.8 min | 10.8 transitions/s | episode score 58.4 | success 0.220 | token budget 24733
+step 5850 | 146.0 min | 11.1 transitions/s | episode score 56.7 | success 0.235 | token budget 24733
+GPU out of memory: token budget lowered to 13603
+step 5900 | 147.3 min | 10.6 transitions/s | episode score 55.8 | success 0.215 | token budget 13603
+step 5950 | 148.4 min | 11.8 transitions/s | episode score 58.8 | success 0.235 | token budget 24095
+step 6000 | 149.7 min | 10.5 transitions/s | episode score 58.6 | success 0.240 | token budget 26504
+[eval] step 6016: score 60.8, success 0.220
+Finished: 6016 steps, 96256 transitions, 752 updates, best eval score 62.1

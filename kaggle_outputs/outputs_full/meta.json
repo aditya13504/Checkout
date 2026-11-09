@@ -1,0 +1,36 @@
+{
+  "python": "3.10.22",
+  "torch": "2.2.2+cu121",
+  "transformers": "4.41.2",
+  "spacy": "3.3.0",
+  "gpus": "2 x Tesla T4",
+  "mode": "full",
+  "config": {
+    "mode": "full",
+    "project_dir": "/kaggle/working/webshop",
+    "outputs_dir": "/kaggle/working/outputs_full",
+    "data_dir": "/tmp/webshop_data",
+    "venv_dir": "/tmp/webshop_venv",
+    "catalog_size": 200000,
+    "test_on_full_catalog": true,
+    "il_epochs": 10,
+    "il_batch_size": 32,
+    "il_max_minutes": 60,
+    "rl_hours": 2.5,
+    "value_goals": 2000,
+    "value_inspect": 14,
+    "value_pages": 2,
+    "num_envs": 16,
+    "bptt": 8,
+    "learning_rate": 1e-05,
+    "workers_per_run": 2,
+    "eval_episodes_during_training": 100,
+    "test_goals": 0,
+    "gpu_ids": [
+      0,
+      1
+    ],
+    "device_torch": "cuda",
+    "smoke_catalog": false
+  }
+}

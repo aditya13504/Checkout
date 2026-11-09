@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ keywords | join(' ') if keywords is not string else keywords }} · WebShop{% endblock %}
+{% block body_class %}page-results{% endblock %}
+{% block main %}
+{% macro pager() %}
+  {% set pages = ((total + 9) // 10) if total else 1 %}
+  <div class="pager">
+    {% if page > 1 %}
+    <form method="post" action="{{ url_for('search_results', session_id=session_id, keywords=keywords, page=page - 1) }}">
+      <button type="submit" class="btn-quiet">&larr; Previous</button>
+    </form>
+    {% endif %}
+    <span class="pg">Page {{ page }} of {{ pages }}</span>
+    {% if page * 10 < total %}
+    <form method="post" action="{{ url_for('search_results', session_id=session_id, keywords=keywords, page=page + 1) }}">
+      <button type="submit" class="btn-quiet">Next &rarr;</button>
+    </form>
+    {% endif %}
+  </div>
+{% endmacro %}
+{% set query = keywords | join(' ') if keywords is not string else keywords %}
+<div class="bar">
+  <form method="post" action="{{ url_for('index', session_id=session_id) }}">
+    <button type="submit" class="btn-back">&larr; New search</button>
+  </form>
+  <div class="found">
+    <h1>{% if total %}{{ total }} results{% else %}No results{% endif %} for <q>{{ query }}</q></h1>
+  </div>
+  {% if total %}{{ pager() }}{% endif %}
+</div>
+
+{% if products %}
+<ol class="grid" start="{{ (page - 1) * 10 + 1 }}">
+  {% for item in products %}
+  {% set item_url = url_for('item_page', session_id=session_id, asin=item.asin, keywords=keywords, page=page, options=dict()) %}
+  <li class="card">
+    <a class="card-link" href="{{ item_url }}">
+      <span class="thumb"><img src="{{ item.MainImage }}" alt="" loading="lazy"
+        onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/no-image-available.png') }}'"></span>
+      <span class="card-body">
+        <span class="rank">{{ (page - 1) * 10 + loop.index }}</span>
+        <span class="title">{{ item.Title }}</span>
+        <span class="price">{{ item.Price }}</span>
+      </span>
+    </a>
+  </li>
+  {% endfor %}
+</ol>
+<div class="bar bar-end">{{ pager() }}</div>
+{% else %}
+<div class="empty">
+  <h2>Nothing matched those words.</h2>
+  <p>Try fewer words, or the main noun from the request, such as the kind of product and one feature.</p>
+  <form method="post" action="{{ url_for('index', session_id=session_id) }}"><button type="submit" class="btn-go">Search again</button></form>
+</div>
+{% endif %}
+{% endblock %}

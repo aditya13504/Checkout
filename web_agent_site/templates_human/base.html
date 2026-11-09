@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}WebShop{% endblock %}</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='store.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<a class="skip" href="#main">Skip to the page</a>
+<header class="top">
+  <div class="wrap top-in">
+    <span class="brand"><i aria-hidden="true"></i>WebShop</span>
+    <div class="meta">
+      {% if request_no %}<span class="req-no">Request {{ request_no }} of 500</span>{% endif %}
+      <span class="steps" title="Each search, click, option and page counts as one step, as it does for the agents. They stop at 100.">
+        Step <b>{{ steps }}</b></span>
+    </div>
+  </div>
+</header>
+<section class="task" aria-label="Your task">
+  <div class="wrap task-in">
+    <span class="task-lab">Your task</span>
+    <p class="task-text">{{ instruction_text }}</p>
+    {% if budget %}<span class="budget">Budget under ${{ '%.2f' | format(budget) }}</span>{% endif %}
+  </div>
+</section>
+<main id="main" class="wrap">
+{% block main %}{% endblock %}
+</main>
+<footer class="wrap foot">
+  <p>The same store and the same moves as the agents: search, open a product, choose its options, buy. Buying ends the task, and the store scores it against the request.</p>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>
