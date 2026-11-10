@@ -224,6 +224,7 @@ main { padding: 12px 0 44px; min-height: 50vh; }
   background-image: radial-gradient(circle, rgba(18,18,16,.16) 1.3px, transparent 1.4px); background-size: 18px 18px; }
 .score-tag.tone-good { --c: var(--green); --soft: var(--green-soft); }
 .score-tag.tone-bad { --c: var(--red); --soft: var(--red-soft); }
+.score-tag > .lab { display: block; }  /* above the stamp, also when a short score would leave room beside it */
 .st-stamp { display: inline-block; max-width: calc(100% - 16px); margin: 12px 0 12px 6px; padding: 10px 18px 12px; color: var(--c); background: rgba(255, 255, 255, .9);
   border: 6px solid var(--c); border-radius: 6px; outline: 2px solid var(--c); outline-offset: -12px; transform: rotate(-5deg);
   animation: slam .55s var(--spring) .1s both; }
